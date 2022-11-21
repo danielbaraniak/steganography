@@ -1,4 +1,4 @@
-mozjpeg_lossless_optimization>=1.1.2
-numpy>=1.22.0
-opencv_python>=4.6.0.66
-unireedsolomon>=1.0.5
+mozjpeg_lossless_optimization
+numpy
+opencv_python
+unireedsolomon
