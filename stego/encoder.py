@@ -1,38 +1,6 @@
-import cv2
 import numpy as np
-import struct
-
-PATH = "images/mandrill.png"
-
-
-def pad_image(img: np.ndarray, block_size=8):
-    padding_size = []
-
-    for dimension in img.shape:
-        padding_size.append((block_size - (dimension % block_size)) % block_size)
-
-    img = cv2.copyMakeBorder(img, 0, padding_size[0], 0, padding_size[1], cv2.BORDER_REFLECT)
-    return img
-
-
-def divide_image(img: np.ndarray, block_size=8):
-    h, w = img.shape
-    columns = np.split(img, h // block_size, axis=0)
-    blocks = [np.split(column, w // block_size, axis=1) for column in columns]
-
-    return blocks
-
-
-def stack_image(blocks):
-    return np.block(blocks)
-
-
-def dct(src: np.ndarray) -> np.ndarray:
-    return cv2.dct(np.float32(src)-127)
-
-
-def idct(src: np.ndarray) -> np.ndarray:
-    return np.uint8(cv2.idct(src)+127)
+from stego.transform.blocking import divide_image, stack_image
+from stego.transform.dct import dct, idct
 
 
 def encode_block(block, payload, alpha):
@@ -52,7 +20,7 @@ def decode_block(c_block, s_block, alpha):
 
     payload = s_block[max_position] - c_block[max_position]
 
-    return int(payload/alpha)
+    return int(payload / alpha)
 
 
 def encode(cover_img: np.ndarray, payload, block_size: int = 8, alpha: float = 1):
@@ -87,6 +55,7 @@ def decode(stego_img, cover_img, block_size: int = 8, alpha: float = 1):
             payload.append(decode_block(c_dct, s_dct, alpha))
 
     return payload
+
 
 def prepare_message(msg):
     import unireedsolomon as rs

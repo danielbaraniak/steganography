@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
 import cv2
-from encoder import encode, decode
-from metrics import mse
+from stego.encoder import encode, decode
+from stego.metrics import mse
 import unireedsolomon as rs
 
 PATH = "images/2.jpg"
