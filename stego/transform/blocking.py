@@ -6,9 +6,11 @@ def pad_image(img: np.ndarray, block_size=8):
     padding_size = []
 
     for dimension in img.shape:
-        padding_size.append((block_size - (dimension % block_size)) % block_size)
+        padding_size.append(
+            (block_size - (dimension % block_size)) % block_size)
 
-    img = cv2.copyMakeBorder(img, 0, padding_size[0], 0, padding_size[1], cv2.BORDER_REFLECT)
+    img = cv2.copyMakeBorder(
+        img, 0, padding_size[0], 0, padding_size[1], cv2.BORDER_REFLECT)
     return img
 
 
