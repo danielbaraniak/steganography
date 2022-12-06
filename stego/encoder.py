@@ -48,6 +48,7 @@ def extract(block):
     perimiter_coeffs = np.array([block[idx] for idx in coeffs_order])
     return extraction_function(perimiter_coeffs, center_coeff)
 
+
 def encode_block(block, payload, alpha):
     print(block)
     block[0, 0], dc = float('-inf'), block[0, 0]
@@ -102,7 +103,6 @@ def decode(stego_img, cover_img, block_size: int = 8, alpha: float = 1):
     return payload
 
 
-
 def byte_to_dec_array(byte):
     result = [None, None, None, None]
     result[0] = (byte & 0b11000000) >> 6
@@ -129,12 +129,12 @@ def message_to_dec(msg: str):
     for b in byte_message:
         arr.extend(byte_to_dec_array(b))
 
-    return arr
+    return split_list(arr, 8)
 
 
 def dec_to_message(arr):
     arr = [int(i) for i in arr]
-    chunks = [arr[x:x + 4] for x in range(0, len(arr), 4)]
+    chunks = split_list(arr, 4)
 
     dec_list = []
     for chunk in chunks:
@@ -143,8 +143,23 @@ def dec_to_message(arr):
     return bytes(dec_list).decode('utf-8', errors='ignore')
 
 
+def split_list(arr, sublist_size):
+    # pad a list
+    arr += [0] * (sublist_size - (len(arr) % sublist_size))
+    return [arr[x:x + sublist_size] for x in range(0, len(arr), sublist_size)]
+
+
 def prepare_message(msg):
     import unireedsolomon as rs
     coder = rs.RSCoder(20, 13)
     c = coder.encode("Hello, world!")
     coder.decode()
+
+
+def encode_band(band: list, message_iterator):
+    for j, row in enumerate(band):
+        try:
+            for k, block in enumerate(row):
+                band[j][k] = embed(block, next(message_iterator))
+        except StopIteration:
+            break
