@@ -163,3 +163,11 @@ def encode_band(band: list, message_iterator):
                 band[j][k] = embed(block, next(message_iterator))
         except StopIteration:
             break
+
+
+def decode_band(blocks):
+    encoded_data = []
+    for row in blocks:
+        for block in row:
+            encoded_data.extend(extract(block))
+    return encoded_data
