@@ -149,13 +149,6 @@ def split_list(arr, sublist_size):
     return [arr[x:x + sublist_size] for x in range(0, len(arr), sublist_size)]
 
 
-def prepare_message(msg):
-    import unireedsolomon as rs
-    coder = rs.RSCoder(20, 13)
-    c = coder.encode("Hello, world!")
-    coder.decode()
-
-
 def encode_band(band: list, message_iterator):
     for j, row in enumerate(band):
         try:
