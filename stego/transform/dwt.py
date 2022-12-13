@@ -49,7 +49,11 @@ class Iwt(Transform):
 
     def inverse(self):
         self._inverse_to_int()
-        return pywt.waverec2(self.coefficients, wavelet=self.wavelet)
+        img = pywt.waverec2(self.coefficients, wavelet=self.wavelet)
+        img = np.where(img > 255, 255, img)
+        img = np.where(img < 0, 0, img)
+        return np.rint(img).astype(np.uint8)
+
 
     def _to_int(self):
         arr, coeff_slices = pywt.coeffs_to_array(self.coefficients)
