@@ -44,3 +44,26 @@ def divide_image(img: np.ndarray, block_size=8):
     blocks = [np.split(column, w // block_size, axis=1) for column in columns]
 
     return blocks
+
+
+class CropBlocker:
+    def __init__(self, img: np.ndarray):
+        self.img: np.ndarray = img
+
+    def divide(self, block_size=8):
+        new_img = crop_to_fit(self.img, block_size)
+
+        h, w = self.img.shape
+        columns = np.split(new_img, h // block_size, axis=0)
+        blocks = [np.split(column, w // block_size, axis=1) for column in columns]
+
+        return blocks
+
+    def stack(self, blocks):
+        stacked = np.block(blocks)
+        image = self.img.copy()
+        h, w = stacked.shape
+        image[:h, :w] = stacked
+        return image
+
+

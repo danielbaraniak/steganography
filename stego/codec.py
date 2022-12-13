@@ -1,6 +1,7 @@
 import numpy as np
 
 from stego.transform import blocking
+from stego.transform.blocking import CropBlocker
 
 coeffs_order = [(0, 0), (0, 1), (0, 2), (1, 2), (2, 2), (2, 1), (2, 0), (1, 0)]
 
@@ -50,18 +51,20 @@ def extract(block):
 
 
 def encode_band(band: np.ndarray, message_iterator):
-    blocks = blocking.divide_image(band, block_size=3)
+    blocker = CropBlocker(band)
+    blocks = blocker.divide(block_size=3)
     for j, row in enumerate(blocks):
         try:
             for k, block in enumerate(row):
                 blocks[j][k] = embed(block, next(message_iterator))
         except StopIteration:
             break
-    return blocking.stack_image(blocks)
+    return blocker.stack(blocks)
 
 
 def decode_band(band):
-    blocks = blocking.divide_image(band, block_size=3)
+    blocker = CropBlocker(band)
+    blocks = blocker.divide(block_size=3)
     encoded_data = []
 
     for row in blocks:
