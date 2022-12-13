@@ -5,6 +5,8 @@ import numpy as np
 import pywt
 
 from stego.codec import embed, extract, encode_band, decode_band
+from stego.message import message_to_dec, dec_to_message
+from stego.transform.dwt import Iwt
 
 
 class TestsCodec(unittest.TestCase):
@@ -45,8 +47,20 @@ class TestsCodec(unittest.TestCase):
         encoded_img = encode_band(image, iter(original_data))
         self.assertEqual(image.shape, encoded_img.shape)
 
+    def test_integration_without_reverse_transform(self):
+        message = "v89 wib fkj ghf 20"
+        image = pywt.data.camera()
+        iwt = Iwt('haar', level=1)
+        iwt.forward(image)
 
+        ll = iwt.coefficients[0]
+        encoded_msg = message_to_dec(message)
 
+        encoded_ll = encode_band(ll, iter(encoded_msg))
+        extracted_data_ll = decode_band(encoded_ll)
+        extracted_message = dec_to_message(extracted_data_ll)
+
+        self.assertEqual(message[:16], extracted_message[:16])
 
 
 if __name__ == '__main__':

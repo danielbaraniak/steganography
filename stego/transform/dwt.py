@@ -41,7 +41,7 @@ class Iwt(Transform):
         if scale:
             self.scale = scale
         else:
-            self.scale = 2**level
+            self.scale = 2 ** level
 
     def forward(self, img):
         self.coefficients = pywt.wavedec2(img, wavelet=self.wavelet, level=self.level)
@@ -53,7 +53,6 @@ class Iwt(Transform):
         img = np.where(img > 255, 255, img)
         img = np.where(img < 0, 0, img)
         return np.rint(img).astype(np.uint8)
-
 
     def _to_int(self):
         arr, coeff_slices = pywt.coeffs_to_array(self.coefficients)
