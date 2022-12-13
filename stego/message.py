@@ -40,5 +40,6 @@ def dec_to_message(arr):
 
 def _split_list(arr, sublist_size):
     # pad a list
-    arr += [0] * (sublist_size - (len(arr) % sublist_size))
+    if len(arr) % sublist_size != 0:
+        arr += [0] * (sublist_size - (len(arr) % sublist_size))
     return [arr[x:x + sublist_size] for x in range(0, len(arr), sublist_size)]
