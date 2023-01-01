@@ -16,21 +16,22 @@ class Transform(ABC):
 
 
 class Dwt(Transform):
-    def __init__(self, wavelet, mode='symmetric', axes=(-2, -1)) -> Self:
-        super().__init__()
-        self.coeffs = None
+    def __init__(self, wavelet, level=1):
         self.wavelet = wavelet
-        self.mode = mode
-        self.axes = axes
+        self.level = level
+        self.coefficients = None
 
     def forward(self, img):
-        coeffs = pywt.dwt2(data=img, wavelet=self.wavelet,
-                           mode=self.mode, axes=self.axes)
-        self.coeffs = coeffs
-        return coeffs
+        self.coefficients = pywt.wavedec2(
+            img, wavelet=self.wavelet, level=self.level)
+
+        return self.coefficients
 
     def inverse(self):
-        return pywt.idwt2(coeffs=self.coeffs, wavelet=self.wavelet, mode=self.mode, axes=self.axes)
+        img = pywt.waverec2(self.coefficients, wavelet=self.wavelet)
+        img = np.where(img > 255, 255, img)
+        img = np.where(img < 0, 0, img)
+        return np.rint(img).astype(np.uint8)
 
 
 class Iwt(Transform):
@@ -44,8 +45,10 @@ class Iwt(Transform):
             self.scale = 2 ** level
 
     def forward(self, img):
-        self.coefficients = pywt.wavedec2(img, wavelet=self.wavelet, level=self.level)
+        self.coefficients = pywt.wavedec2(
+            img, wavelet=self.wavelet, level=self.level)
         self._to_int()
+        return self.coefficients
 
     def inverse(self):
         self._inverse_to_int()
@@ -57,9 +60,11 @@ class Iwt(Transform):
     def _to_int(self):
         arr, coeff_slices = pywt.coeffs_to_array(self.coefficients)
         arr = np.rint(arr * self.scale).astype(int)
-        self.coefficients = pywt.array_to_coeffs(arr, coeff_slices, output_format='wavedec2')
+        self.coefficients = pywt.array_to_coeffs(
+            arr, coeff_slices, output_format='wavedec2')
 
     def _inverse_to_int(self):
         arr, coeff_slices = pywt.coeffs_to_array(self.coefficients)
         arr = (arr / self.scale)
-        self.coefficients = pywt.array_to_coeffs(arr, coeff_slices, output_format='wavedec2')
+        self.coefficients = pywt.array_to_coeffs(
+            arr, coeff_slices, output_format='wavedec2')

@@ -5,7 +5,7 @@ coder = None
 
 def prepare_message(msg):
     global coder
-    coder = rs.RSCoder(255, len(msg))
+    coder = rs.RSCoder(128, len(msg))
     return coder.encode(msg)
 
 
