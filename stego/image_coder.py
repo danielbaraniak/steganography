@@ -5,9 +5,9 @@ import numpy as np
 from stego import codec
 from stego.message import message_to_dec, dec_to_message, Base2MessageCoder
 from stego.transform.blocking import CropBlocker
-from stego.transform.dwt import Iwt
 from collections import Counter
 import unireedsolomon as rs
+import cv2
 
 
 class StegoCoder:
@@ -100,12 +100,49 @@ perimeter_mask = np.array([
 MSG_LEN = 30
 
 
+def compress_image(image, quality_level):
+    _, compressed_image_bytes = cv2.imencode(
+        ".jpg", image, [cv2.IMWRITE_JPEG_QUALITY, quality_level])
+    compressed_image_array = cv2.imdecode(np.frombuffer(
+        compressed_image_bytes, np.uint8), cv2.IMREAD_GRAYSCALE)
+
+    return compressed_image_array
+
+
+def sigma(data, n):
+    mean = np.mean(data)
+    std = np.std(data)
+    return max(abs(mean - n * std), abs(mean + n * std))
+
+
+def get_diffs(original, modified, transform):
+    o_coeffs = transform.forward(original)
+    m_coeffs = transform.forward(modified)
+
+    diffs = []
+    diff = o_coeffs[0] - m_coeffs[0]
+    diffs.append(sigma(diff, 2))
+
+    for o, m in zip(o_coeffs[1:], m_coeffs[1:]):
+        level = []
+        for i in range(3):
+            diff = o[i] - m[i]
+            level.append(sigma(diff, 2))
+        diffs.append(level)
+    return diffs
+
+
 class RobustStegoCoder:
     def __init__(self, transform, levels_to_encode: int = 1, alpha: float = 1):
         self.transform = transform
         self.message_coder = rs.RSCoder(128, MSG_LEN)
         self.levels_to_encode = levels_to_encode
         self.alpha = alpha
+
+    def get_mvs(self, image, quality_level=50):
+        comp = compress_image(image, quality_level)
+        mvs = get_diffs(image, comp, self.transform)
+        return mvs
 
     def _loop_message(self, message):
         return cycle(message)
@@ -156,10 +193,9 @@ class RobustStegoCoder:
             arr += "" * (sublist_size - (len(arr) % sublist_size))
         return [arr[x:x + sublist_size] for x in range(0, len(arr), sublist_size)]
 
-    def encode_block(self, block, data, alpha):
+    def encode_block(self, block, data, mv, alpha):
 
         mean = np.mean(block, where=perimeter_mask)
-        mv = 5
         new_value = mean
         if data == 0:
             new_value -= mv * alpha
@@ -179,14 +215,15 @@ class RobustStegoCoder:
             result = 0
         return result
 
-    def encode_band(self, band: np.ndarray, message_iterator):
+    def encode_band(self, band: np.ndarray, message_iterator, mv):
+        print(mv)
         blocker = CropBlocker(band)
         blocks = blocker.divide(block_size=3)
         for j, row in enumerate(blocks):
             try:
                 for k, block in enumerate(row):
                     blocks[j][k] = self.encode_block(
-                        block, next(message_iterator), alpha=self.alpha)
+                        block, next(message_iterator), mv, alpha=self.alpha)
             except StopIteration:
                 break
         return blocker.stack(blocks)
@@ -203,16 +240,16 @@ class RobustStegoCoder:
         return encoded_data
 
     def encode(self, img, message):
-        coeffs = self.transform.forward(img)
-        levels = self.transform.coefficients[:]
+        all_mvs = self.get_mvs(img)
+        levels = self.transform.forward(img)[:]
 
         msg_iterator = iter(self.encode_message(message))
 
         new_coefficients = []
-        for level in self.transform.coefficients[1:self.levels_to_encode + 1]:
+        for level, mvs in zip(levels[1:self.levels_to_encode + 1], all_mvs[1:self.levels_to_encode + 1]):
             new_coefficients.append(
                 tuple(
-                    self.encode_band(band, msg_iterator) for band in level
+                    self.encode_band(band, msg_iterator, mv) for band, mv in zip(level, mvs)
                 )
             )
 
