@@ -35,7 +35,8 @@ lcv_to_mv = [0, 1, 2, -1]
 def embed(block, decimal_data: np.ndarray):
     center_coeff = block[1, 1]
     perimeter_coeffs = np.array([block[idx] for idx in coeffs_order])
-    lcvs = lcv(decimal_data, extraction_function(perimeter_coeffs, center_coeff))
+    lcvs = lcv(decimal_data, extraction_function(
+        perimeter_coeffs, center_coeff))
     mvs = [lcv_to_mv[int(lcv)] for lcv in lcvs]
 
     for idx, mv in zip(coeffs_order, mvs):
