@@ -1,7 +1,7 @@
 from itertools import chain
 from unittest import TestCase
 
-from stego.message import message_to_dec, dec_to_message
+from stego.message import message_to_dec, dec_to_message, Base2MessageCoder
 
 
 class TestMessage(TestCase):
@@ -13,4 +13,10 @@ class TestMessage(TestCase):
 
         self.assertEqual(message, decoded_msg)
 
+    def test_encode_than_decode_base2(self):
+        message = "Functions creating iterators for efficient looping"
 
+        encoded_msg = Base2MessageCoder.encode(message)
+        print(f"{len(message)=}\n{len(encoded_msg)=}")
+        decoded_msg = Base2MessageCoder.decode(encoded_msg)
+        self.assertEqual(message, decoded_msg)

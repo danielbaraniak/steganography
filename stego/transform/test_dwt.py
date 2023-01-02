@@ -3,7 +3,7 @@ from unittest import TestCase
 import numpy as np
 import pywt
 
-from stego.transform.dwt import Iwt
+from stego.transform.dwt import Iwt, Dwt
 
 
 class TestIwt(TestCase):
@@ -35,3 +35,12 @@ class TestIwt(TestCase):
         lh_new = iwt.coefficients[0].copy()
 
         self.assertTrue(np.allclose(lh_m, lh_new))
+
+
+class TestDwt(TestCase):
+    def test_forward_than_inverse(self):
+        image = pywt.data.camera()
+        transform = Dwt('haar', level=3)
+        transform.forward(image)
+        result = transform.inverse()
+        self.assertTrue(np.allclose(image, result))

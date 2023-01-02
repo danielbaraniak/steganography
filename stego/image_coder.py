@@ -90,17 +90,29 @@ class StegoCoder:
         return self.decode_message(extracted_data)
 
 
+perimeter_mask = np.array([
+    [True, True, True],
+    [True, False, True],
+    [True, True, True]
+])
+
+
+MSG_LEN = 30
+
+
 class RobustStegoCoder:
-    def __init__(self, transform, codec):
+    def __init__(self, transform, levels_to_encode: int = 1, alpha: float = 1):
         self.transform = transform
-        self.codec = codec
+        self.message_coder = rs.RSCoder(128, MSG_LEN)
+        self.levels_to_encode = levels_to_encode
+        self.alpha = alpha
 
     def _loop_message(self, message):
         return cycle(message)
 
     def find_original_string(self, strings):
         # Initialize the result string with the same length as the input strings
-        result = ['-'] * len(strings[0])
+        result = ['-'] * MSG_LEN
 
         # Iterate through each position in the strings
         for i in range(len(strings[0])):
@@ -114,9 +126,12 @@ class RobustStegoCoder:
         # Join the result list into a single string
         result_string = ''.join(result)
 
-        return result_string
+        return result_string[:MSG_LEN]
 
-    def prepare_message(self, message):
+    def encode_message(self, message: str):
+        message = message.ljust(MSG_LEN)
+        message = self.message_coder.encode(message=message)
+        print(message)
         msg = Base2MessageCoder.encode(message)
         return self._loop_message(msg)
 
@@ -124,8 +139,11 @@ class RobustStegoCoder:
         message_raw = Base2MessageCoder.decode(retrieved_data)
         data = self.split_list(message_raw, 128)
         messages = []
-        for s in data[:5]:
-            print(s)
+        for s in data[:-1]:
+            try:
+                s = self.message_coder.decode(s)
+            except:
+                continue
             messages.append(s)
 
         result = self.find_original_string(messages)
@@ -138,13 +156,37 @@ class RobustStegoCoder:
             arr += "" * (sublist_size - (len(arr) % sublist_size))
         return [arr[x:x + sublist_size] for x in range(0, len(arr), sublist_size)]
 
+    def encode_block(self, block, data, alpha):
+
+        mean = np.mean(block, where=perimeter_mask)
+        mv = 5
+        new_value = mean
+        if data == 0:
+            new_value -= mv * alpha
+        elif data == 1:
+            new_value += mv * alpha
+        block[1, 1] = new_value
+
+        return block
+
+    def decode_block(self, block):
+        m = np.mean(block, where=perimeter_mask)
+        value = block[1, 1] - m
+        result = 0
+        if value > 0:
+            result = 1
+        elif value < 0:
+            result = 0
+        return result
+
     def encode_band(self, band: np.ndarray, message_iterator):
         blocker = CropBlocker(band)
         blocks = blocker.divide(block_size=3)
         for j, row in enumerate(blocks):
             try:
                 for k, block in enumerate(row):
-                    blocks[j][k] = embed(block, next(message_iterator))
+                    blocks[j][k] = self.encode_block(
+                        block, next(message_iterator), alpha=self.alpha)
             except StopIteration:
                 break
         return blocker.stack(blocks)
@@ -156,29 +198,36 @@ class RobustStegoCoder:
 
         for row in blocks:
             for block in row:
-                pass
+                encoded_data.append(self.decode_block(block))
+
         return encoded_data
 
     def encode(self, img, message):
         coeffs = self.transform.forward(img)
-        coefficients = self.transform.coefficients[-1]
+        levels = self.transform.coefficients[:]
 
-        msg_iterator = iter(self.prepare_message(message))
-        coefficients_new = [self.encode_band(
-            band, msg_iterator) for band in coefficients]
+        msg_iterator = iter(self.encode_message(message))
 
-        self.transform.coefficients[-1] = tuple(coefficients_new)
+        new_coefficients = []
+        for level in self.transform.coefficients[1:self.levels_to_encode + 1]:
+            new_coefficients.append(
+                tuple(
+                    self.encode_band(band, msg_iterator) for band in level
+                )
+            )
+
+        self.transform.coefficients[1:self.levels_to_encode +
+                                    1] = new_coefficients
 
         return self.transform.inverse()
 
     def decode(self, img):
         self.transform.forward(img)
-        ll = self.transform.coefficients[0]
-        coefficients = self.transform.coefficients[-1]
 
         extracted_data = []
 
-        for band in coefficients:
-            extracted_data += self.decode_band(band)
+        for level in self.transform.coefficients[1:self.levels_to_encode+1]:
+            for band in level:
+                extracted_data += self.decode_band(band)
 
         return self.decode_message(extracted_data)

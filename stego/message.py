@@ -99,7 +99,7 @@ class Base2MessageCoder(MessageCoder):
         binary_strings = [b.rjust(8, '0') for b in binary_strings]
 
         # Create a list of the bits in each binary string
-        bits = [[bit for bit in b] for b in binary_strings]
+        bits = [[int(bit) for bit in b] for b in binary_strings]
 
         # Flatten the list of bits into a single list
         bits = [bit for sublist in bits for bit in sublist]
@@ -111,7 +111,8 @@ class Base2MessageCoder(MessageCoder):
         binary_strings = [bits[i:i+8] for i in range(0, len(bits), 8)]
 
         # Join each chunk into a single binary string
-        binary_strings = ['0b' + ''.join(b) for b in binary_strings]
+        binary_strings = ['0b' + ''.join([str(b) for b in binary_string])
+                          for binary_string in binary_strings]
 
         # Convert each binary string to an integer
         ascii_values = [int(b, 2) for b in binary_strings]
