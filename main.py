@@ -1,35 +1,37 @@
 #!/usr/bin/env python3
 
 import cv2
-from stego.encoder import encode, decode
-from stego.metrics import mse
-import unireedsolomon as rs
+import numpy as np
+from stego.image_coder import StegoCoder
+
+import stego.message
+from stego import correction_codes
+from stego.message import message_to_dec
+from stego.transform.dwt import Iwt
 
 PATH = "images/2.jpg"
-ALPHA = 0.001
+MESSAGE = "Osadzenie w 3 poziomie"
+
+
+def encode(img: np.ndarray, message: str):
+    coder = StegoCoder()
+
+    data = message_to_dec(message)
+    message_iterator = iter(data)
+
+    iwt = Iwt('haar', level=3, scale=1)
+    iwt.forward(img)
 
 
 def main():
-    cover_img = cv2.imread(PATH, cv2.IMREAD_GRAYSCALE)
+    img = cv2.imread(PATH)
 
-    coder = rs.RSCoder(20, 13)
-    c = coder.encode("Hello, world!", return_string=False)
-    print(c)
+    rs_message = correction_codes.prepare_message(MESSAGE)
+    data = stego.message.message_to_dec(rs_message)
 
-    img_encoded = encode(cover_img, c, alpha=ALPHA)
+    coder = StegoCoder()
 
-    print(cv2.PSNR(cover_img, img_encoded))
-
-    print(mse(cover_img, img_encoded))
-
-    cv2.imshow("stacked", img_encoded)
-    cv2.waitKey(0)
-
-    m = decode(img_encoded, cover_img, alpha=ALPHA)
-    print(f"{m=}")
-    print(coder.decode(m[:20]))
-
-    cv2.destroyAllWindows()
+    stego_img = coder.encode(img, data)
 
 
 if __name__ == "__main__":
