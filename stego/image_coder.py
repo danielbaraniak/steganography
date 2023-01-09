@@ -133,11 +133,12 @@ def get_diffs(original, modified, transform):
 
 
 class RobustStegoCoder:
-    def __init__(self, transform, levels_to_encode: int = 1, alpha: float = 1):
+    def __init__(self, transform, levels_to_encode: int = 1, quality_level=50, alpha: float = 1):
         self.transform = transform
         self.message_coder = rs.RSCoder(128, MSG_LEN)
         self.levels_to_encode = levels_to_encode
         self.alpha = alpha
+        self.quality_level = quality_level
 
     def get_mvs(self, image, quality_level=50):
         comp = compress_image(image, quality_level)
@@ -168,7 +169,6 @@ class RobustStegoCoder:
     def encode_message(self, message: str):
         message = message.ljust(MSG_LEN)
         message = self.message_coder.encode(message=message)
-        print(message)
         msg = Base2MessageCoder.encode(message)
         return self._loop_message(msg)
 
@@ -216,7 +216,6 @@ class RobustStegoCoder:
         return result
 
     def encode_band(self, band: np.ndarray, message_iterator, mv):
-        print(mv)
         blocker = CropBlocker(band)
         blocks = blocker.divide(block_size=3)
         for j, row in enumerate(blocks):
@@ -240,7 +239,7 @@ class RobustStegoCoder:
         return encoded_data
 
     def encode(self, img, message):
-        all_mvs = self.get_mvs(img)
+        all_mvs = self.get_mvs(img, self.quality_level)
         levels = self.transform.forward(img)[:]
 
         msg_iterator = iter(self.encode_message(message))
