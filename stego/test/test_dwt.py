@@ -3,7 +3,7 @@ from unittest import TestCase
 import numpy as np
 import pywt
 
-from stego.transform.dwt import Iwt, Dwt
+from stego.coder.transform.dwt import Iwt, Dwt
 
 
 class TestIwt(TestCase):

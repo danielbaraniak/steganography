@@ -1,7 +1,6 @@
 import numpy as np
 
-from stego.transform import blocking
-from stego.transform.blocking import CropBlocker
+from stego.coder.transform.blocking import CropBlocker
 
 coeffs_order = [(0, 0), (0, 1), (0, 2), (1, 2), (2, 2), (2, 1), (2, 0), (1, 0)]
 

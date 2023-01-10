@@ -2,9 +2,8 @@ from itertools import cycle
 
 import numpy as np
 
-from stego import codec
-from stego.message import message_to_dec, dec_to_message, Base2MessageCoder
-from stego.transform.blocking import CropBlocker
+from stego.coder.message import message_to_dec, dec_to_message, Base2MessageCoder
+from stego.coder.transform.blocking import CropBlocker
 from collections import Counter
 import unireedsolomon as rs
 import cv2

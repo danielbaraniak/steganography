@@ -1,7 +1,7 @@
 from itertools import chain
 from unittest import TestCase
 
-from stego.message import message_to_dec, dec_to_message, Base2MessageCoder
+from stego.coder.message import message_to_dec, dec_to_message, Base2MessageCoder
 
 
 class TestMessage(TestCase):
