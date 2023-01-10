@@ -4,9 +4,9 @@ from itertools import chain
 import numpy as np
 import pywt
 
-from stego.codec import embed, extract, encode_band, decode_band
-from stego.message import message_to_dec, dec_to_message
-from stego.transform.dwt import Iwt
+from stego.coder.mdle_codec import embed, extract, encode_band, decode_band
+from stego.coder.message import message_to_dec, dec_to_message
+from stego.coder.transform.dwt import Iwt
 
 
 class TestsCodec(unittest.TestCase):
