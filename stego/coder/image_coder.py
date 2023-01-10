@@ -149,7 +149,7 @@ class RobustStegoCoder:
 
     def find_original_string(self, strings):
         # Initialize the result string with the same length as the input strings
-        result = ['-'] * MSG_LEN
+        result = [' '] * MSG_LEN
 
         # Iterate through each position in the strings
         for i in range(len(strings[0])):
@@ -266,3 +266,21 @@ class RobustStegoCoder:
                 extracted_data += self.decode_band(band)
 
         return self.decode_message(extracted_data)
+
+    def encode_color_image(self, img, message):
+        color_bands = []
+        for color in cv2.split(img):
+            color_bands.append(self.encode(color, message))
+
+        return cv2.merge(color_bands)
+
+    def decode_color_image(self, img):
+        extracted_data = []
+
+        for color in cv2.split(img):
+            self.transform.forward(color)
+            for level in self.transform.coefficients[1:self.levels_to_encode + 1]:
+                for band in level:
+                    extracted_data += self.decode_band(band)
+
+            return self.decode_message(extracted_data)
