@@ -1,3 +1,4 @@
+import logging
 from itertools import cycle
 
 import numpy as np
@@ -95,7 +96,6 @@ perimeter_mask = np.array([
     [True, True, True]
 ])
 
-
 MSG_LEN = 30
 
 
@@ -181,7 +181,7 @@ class RobustStegoCoder:
             except:
                 continue
             messages.append(s)
-
+        logging.info(f"{len(data)=},{len(messages)=},{len(messages)/len(data)}")
         result = self.find_original_string(messages)
 
         return result
@@ -252,7 +252,7 @@ class RobustStegoCoder:
             )
 
         self.transform.coefficients[1:self.levels_to_encode +
-                                    1] = new_coefficients
+                                      1] = new_coefficients
 
         return self.transform.inverse()
 
@@ -261,7 +261,7 @@ class RobustStegoCoder:
 
         extracted_data = []
 
-        for level in self.transform.coefficients[1:self.levels_to_encode+1]:
+        for level in self.transform.coefficients[1:self.levels_to_encode + 1]:
             for band in level:
                 extracted_data += self.decode_band(band)
 
