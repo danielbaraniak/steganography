@@ -19,7 +19,8 @@ def main():
     parser.add_argument('filename', help='Filename of the image to process')
     parser.add_argument('--quality_level', '-q',
                         help='Minimum quality level at which is should be possible to decode the message.',
-                        choices=range(1, 100),
+                        type=int,
+                        choices=range(1, 101),
                         default=60
                         )
     parser.add_argument('-m', '--message', help='Secret message')
@@ -35,14 +36,15 @@ def main():
 
         if args.decode:
             msg = stego_coder.decode_color_image(image)
-            logging.info(f"{msg=}")
+            logging.info(f"Decoding '{args.filename}';{msg=}")
             print(msg)
         if args.message:
             image = stego_coder.encode_color_image(img=image, message=args.message)
+            logging.info(f"Encoding '{args.message}' in '{args.filename}'")
         if args.output:
             cv2.imwrite(args.output, image, [int(cv2.IMWRITE_JPEG_QUALITY), 100])
-
-    except:
+    except Exception:
+        logging.error("Cannot decode the message")
         print("Error")
 
 
