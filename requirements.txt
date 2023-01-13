@@ -2,3 +2,4 @@ mozjpeg_lossless_optimization
 numpy
 opencv_python
 unireedsolomon
+PySide6
