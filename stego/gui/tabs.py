@@ -20,9 +20,14 @@ class EncodeTab(QWidget):
         self.message_field = QLineEdit()
         self.open_image_button = QPushButton("Open")
         self.open_image_button.clicked.connect(self.open_image)
+
         self.encode_button = QPushButton("Encode")
         self.encode_button.clicked.connect(self.encode)
         self.encode_button.setEnabled(False)
+
+        self.decode_button = QPushButton("Decode")
+        self.decode_button.clicked.connect(self.decode)
+        self.decode_button.setEnabled(False)
 
         self.image_widget = QLabel()
         self.image_widget.setScaledContents(True)
@@ -32,7 +37,7 @@ class EncodeTab(QWidget):
 
         main_layout = QVBoxLayout()
         main_layout.addWidget(self.create_image_preview_box())
-        main_layout.addLayout(self.create_encoder_controls())
+        main_layout.addLayout(self.create_coder_controls())
 
         self.setLayout(main_layout)
 
@@ -48,7 +53,7 @@ class EncodeTab(QWidget):
 
         return image_box
 
-    def create_encoder_controls(self):
+    def create_coder_controls(self):
 
         self.compression_quality_slider.setMinimum(10)
         self.compression_quality_slider.setMaximum(100)
@@ -77,9 +82,13 @@ class EncodeTab(QWidget):
             grid.addWidget(widget1, i, 1)
             grid.addWidget(widget2, i, 2)
 
+        buttons = QHBoxLayout()
+        buttons.addWidget(self.decode_button)
+        buttons.addWidget(self.encode_button)
+
         column = QVBoxLayout()
         column.addLayout(grid)
-        column.addWidget(self.encode_button)
+        column.addLayout(buttons)
 
         return column
 
@@ -92,6 +101,7 @@ class EncodeTab(QWidget):
             image = QImage(file_name[0])
             if image.isNull():
                 self.encode_button.setEnabled(False)
+                self.decode_button.setEnabled(False)
                 QMessageBox.information(
                     self, "Image Viewer", f"Unable load {file_name[0]}.")
                 return
@@ -104,8 +114,33 @@ class EncodeTab(QWidget):
         self.image_path_label.setText(file_name[0])
 
         self.encode_button.setEnabled(True)
+        self.decode_button.setEnabled(True)
+
+    def decode(self):
+        print("in decode")
+        stego_coder = RobustStegoCoder(
+            Dwt('haar', level=3),
+            levels_to_encode=1,
+            alpha=1
+        )
+
+        input_path = self.image_path_label.text()
+
+        print(input_path)
+
+        image = cv2.imread(input_path)
+        try:
+            message = stego_coder.decode_color_image(image)
+            print(message)
+            if message:
+                QMessageBox.information(self, "Hidden Message", message)
+            else:
+                QMessageBox.warning(self, "Decoding Error", f"Cannot find a message.")
+        except Exception:
+            QMessageBox.warning(self, "Decoding Error", f"Cannot find a message.")
 
     def encode(self):
+        print("in encode")
         compression_quality = self.compression_quality_slider.value()
         message = self.message_field.text()
         input_path = self.image_path_label.text()
@@ -119,11 +154,8 @@ class EncodeTab(QWidget):
             filename, file_extension = path.splitext(output_path)
             if not file_extension:
                 output_path = filename + ".jpg"
-
         else:
-            QMessageBox.information(self, "Image Viewer", f"Unable to save with filename {output_path[0]}.")
             return
-
 
         image = cv2.imread(input_path)
         stego_coder = RobustStegoCoder(
