@@ -1,7 +1,13 @@
+from os import path
+
+import cv2
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QImage, QPixmap
 from PySide6.QtWidgets import QWidget, QHBoxLayout, QLabel, QFileDialog, QPushButton, QVBoxLayout, QMessageBox, \
     QScrollArea, QGroupBox, QGridLayout, QSlider, QLineEdit
+
+from stego.coder.image_coder import RobustStegoCoder
+from stego.coder.transform.dwt import Dwt
 
 
 class EncodeTab(QWidget):
@@ -79,7 +85,7 @@ class EncodeTab(QWidget):
 
     def open_image(self):
         file_name = QFileDialog.getOpenFileName(
-            self, "Open Image", "", "Image Files (*.jpg)")
+            self, "Open Image", "", "Image Files (*.png *.jpg *.bmp)")
 
         image = None
         if file_name[0]:
@@ -104,10 +110,31 @@ class EncodeTab(QWidget):
         message = self.message_field.text()
         input_path = self.image_path_label.text()
 
-        file_name = QFileDialog.getSaveFileName(
+        output_path = QFileDialog.getSaveFileName(
             self, "Save Image", "", "Image Files (*.jpg)")
-        # TODO: save stego image
-        print(compression_quality, message, input_path, file_name)
+
+        if output_path[0]:
+            output_path = output_path[0]
+
+            filename, file_extension = path.splitext(output_path)
+            if not file_extension:
+                output_path = filename + ".jpg"
+
+        else:
+            QMessageBox.information(self, "Image Viewer", f"Unable to save with filename {output_path[0]}.")
+            return
+
+
+        image = cv2.imread(input_path)
+        stego_coder = RobustStegoCoder(
+            Dwt('haar', level=3),
+            levels_to_encode=1,
+            quality_level=compression_quality,
+            alpha=1
+        )
+        stego_image = stego_coder.encode_color_image(image, message)
+
+        cv2.imwrite(output_path, stego_image)
 
 
 class DecodeTab(QWidget):

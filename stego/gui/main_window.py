@@ -17,5 +17,4 @@ class Window(QMainWindow):
         self.tabs.addTab(self.tab1, "Encode")
         self.tabs.addTab(self.tab2, "Decode")
 
-        self.tabs.setTabPosition(QTabWidget.West)
         self.setCentralWidget(self.tabs)
