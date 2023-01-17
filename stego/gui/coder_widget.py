@@ -8,18 +8,19 @@ from PySide6.QtWidgets import QWidget, QHBoxLayout, QLabel, QFileDialog, QPushBu
 
 from stego.coder.image_coder import RobustStegoCoder
 from stego.coder.transform.dwt import Dwt
+from stego.gui.image_preview import ImagePreviewWidget
 
 
-class EncodeTab(QWidget):
+class CoderWidget(QWidget):
     def __init__(self):
         super().__init__()
 
-        self.image_path_label = QLabel()
+        self.image_preview_widget = ImagePreviewWidget()
+        self.image_preview_widget.new_image.connect(self.new_image_handler)
+
         self.compression_quality_slider = QSlider(self)
         self.compression_quality_label = QLabel()
         self.message_field = QLineEdit()
-        self.open_image_button = QPushButton("Open")
-        self.open_image_button.clicked.connect(self.open_image)
 
         self.encode_button = QPushButton("Encode")
         self.encode_button.clicked.connect(self.encode)
@@ -29,29 +30,11 @@ class EncodeTab(QWidget):
         self.decode_button.clicked.connect(self.decode)
         self.decode_button.setEnabled(False)
 
-        self.image_widget = QLabel()
-        self.image_widget.setScaledContents(True)
-
-        self.image_scroll_area = QScrollArea()
-        self.image_scroll_area.setWidget(self.image_widget)
-
         main_layout = QVBoxLayout()
-        main_layout.addWidget(self.create_image_preview_box())
+        main_layout.addWidget(self.image_preview_widget)
         main_layout.addLayout(self.create_coder_controls())
 
         self.setLayout(main_layout)
-
-    def create_image_preview_box(self):
-
-        image_box = QGroupBox("Image preview")
-
-        layout = QVBoxLayout()
-
-        layout.addWidget(self.image_scroll_area)
-
-        image_box.setLayout(layout)
-
-        return image_box
 
     def create_coder_controls(self):
 
@@ -67,12 +50,9 @@ class EncodeTab(QWidget):
         )
         self.compression_quality_slider.setValue(70)
 
-        self.image_path_label.setWordWrap(True)
-
         encoder_info = [
-            ("Path", self.image_path_label, self.open_image_button),
             ("Compression quality", self.compression_quality_slider, self.compression_quality_label),
-            ("Message", self.message_field, QLabel()),
+            ("Message", self.message_field, QLabel("\t")),
         ]
 
         grid = QGridLayout()
@@ -92,29 +72,14 @@ class EncodeTab(QWidget):
 
         return column
 
-    def open_image(self):
-        file_name = QFileDialog.getOpenFileName(
-            self, "Open Image", "", "Image Files (*.png *.jpg *.bmp)")
-
-        image = None
-        if file_name[0]:
-            image = QImage(file_name[0])
-            if image.isNull():
-                self.encode_button.setEnabled(False)
-                self.decode_button.setEnabled(False)
-                QMessageBox.information(
-                    self, "Image Viewer", f"Unable load {file_name[0]}.")
-                return
-
-        # Load in image pixmap
-        self.image_widget.setPixmap(QPixmap.fromImage(image))
-        self.image_widget.adjustSize()
-
-        # update image path
-        self.image_path_label.setText(file_name[0])
-
-        self.encode_button.setEnabled(True)
-        self.decode_button.setEnabled(True)
+    def new_image_handler(self, is_loaded):
+        print(is_loaded)
+        if is_loaded:
+            self.encode_button.setEnabled(True)
+            self.decode_button.setEnabled(True)
+        else:
+            self.encode_button.setEnabled(False)
+            self.decode_button.setEnabled(False)
 
     def decode(self):
         print("in decode")
@@ -124,11 +89,7 @@ class EncodeTab(QWidget):
             alpha=1
         )
 
-        input_path = self.image_path_label.text()
-
-        print(input_path)
-
-        image = cv2.imread(input_path)
+        image = self.image_preview_widget.cv2_image
         try:
             message = stego_coder.decode_color_image(image)
             print(message)
@@ -143,7 +104,6 @@ class EncodeTab(QWidget):
         print("in encode")
         compression_quality = self.compression_quality_slider.value()
         message = self.message_field.text()
-        input_path = self.image_path_label.text()
 
         output_path = QFileDialog.getSaveFileName(
             self, "Save Image", "", "Image Files (*.jpg)")
@@ -157,7 +117,7 @@ class EncodeTab(QWidget):
         else:
             return
 
-        image = cv2.imread(input_path)
+        image = self.image_preview_widget.cv2_image
         stego_coder = RobustStegoCoder(
             Dwt('haar', level=3),
             levels_to_encode=1,
@@ -168,12 +128,3 @@ class EncodeTab(QWidget):
 
         cv2.imwrite(output_path, stego_image)
 
-
-class DecodeTab(QWidget):
-    def __init__(self):
-        super().__init__()
-
-        main_layout = QHBoxLayout()
-        main_layout.addWidget(QLabel("Decode tab"))
-
-        self.setLayout(main_layout)
