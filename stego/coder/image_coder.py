@@ -283,4 +283,4 @@ class RobustStegoCoder:
                 for band in level:
                     extracted_data += self.decode_band(band)
 
-            return self.decode_message(extracted_data)
+        return self.decode_message(extracted_data)
