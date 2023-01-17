@@ -3,6 +3,7 @@ from itertools import cycle
 
 import numpy as np
 
+from stego.coder import mdle_codec
 from stego.coder.message import message_to_dec, dec_to_message, Base2MessageCoder
 from stego.coder.transform.blocking import CropBlocker
 from collections import Counter
@@ -70,7 +71,7 @@ class StegoCoder:
         coefficients = self.transform.coefficients[-1]
 
         msg_iterator = iter(self.prepare_message(message))
-        coefficients_new = [codec.encode_band(
+        coefficients_new = [mdle_codec.encode_band(
             band, msg_iterator) for band in coefficients]
 
         self.transform.coefficients[-1] = tuple(coefficients_new)
@@ -85,7 +86,7 @@ class StegoCoder:
         extracted_data = []
 
         for band in coefficients:
-            extracted_data += codec.decode_band(band)
+            extracted_data += mdle_codec.decode_band(band)
 
         return self.decode_message(extracted_data)
 
@@ -175,16 +176,15 @@ class RobustStegoCoder:
         message_raw = Base2MessageCoder.decode(retrieved_data)
         data = self.split_list(message_raw, 128)
         messages = []
-        for s in data[:-1]:
+        for s in data:
             try:
                 s = self.message_coder.decode(s)
             except:
                 continue
             messages.append(s)
-        logging.info(f"{len(data)=},{len(messages)=},{len(messages)/len(data)}")
         result = self.find_original_string(messages)
 
-        return result
+        return result, len(data), len(messages)
 
     def split_list(self, arr, sublist_size):
         # pad a list
@@ -265,7 +265,7 @@ class RobustStegoCoder:
             for band in level:
                 extracted_data += self.decode_band(band)
 
-        return self.decode_message(extracted_data)
+        return self.decode_message(extracted_data)[0]
 
     def encode_color_image(self, img, message):
         color_bands = []
@@ -275,12 +275,27 @@ class RobustStegoCoder:
         return cv2.merge(color_bands)
 
     def decode_color_image(self, img):
-        extracted_data = []
+
+        metadata = self.decode_color_image_verbose(img)
+
+        logging.info(f"R{metadata[0]},B{metadata[1]},G{metadata[2]}")
+
+        msgs = []
+        for m, _, _ in metadata:
+            msgs.append(m)
+
+        return self.find_original_string(msgs).rstrip()
+
+    def decode_color_image_verbose(self, img):
+        channel_messages = []
 
         for color in cv2.split(img):
+            extracted_data = []
             self.transform.forward(color)
             for level in self.transform.coefficients[1:self.levels_to_encode + 1]:
                 for band in level:
                     extracted_data += self.decode_band(band)
 
-        return self.decode_message(extracted_data)
+            channel_messages.append(self.decode_message(extracted_data))
+
+        return channel_messages
