@@ -7,6 +7,7 @@ from PySide6.QtWidgets import QWidget, QHBoxLayout, QLabel, QFileDialog, QPushBu
     QScrollArea, QGroupBox, QGridLayout, QSlider, QLineEdit
 
 from stego.coder.image_coder import RobustStegoCoder
+from stego.coder.message import MessageNotFoundException
 from stego.coder.transform.dwt import Dwt
 from stego.gui.image_preview import ImagePreviewWidget
 
@@ -94,14 +95,13 @@ class CoderWidget(QWidget):
             message = stego_coder.decode_color_image(image)
             print(message)
             if message:
-                QMessageBox.information(self, "Hidden Message", message)
+                QMessageBox.information(self, "Hidden Message", str(message))
             else:
                 QMessageBox.warning(self, "Decoding Error", f"Cannot find a message.")
-        except Exception:
+        except MessageNotFoundException:
             QMessageBox.warning(self, "Decoding Error", f"Cannot find a message.")
 
     def encode(self):
-        print("in encode")
         compression_quality = self.compression_quality_slider.value()
         message = self.message_field.text()
 
