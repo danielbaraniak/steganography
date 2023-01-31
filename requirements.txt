@@ -1,5 +1,5 @@
 mozjpeg_lossless_optimization
-numpy
-opencv_python
-unireedsolomon
-PySide6
+numpy~=1.23.5
+PySide6~=6.4.2
+opencv-python~=4.6.0.66
+reedsolo~=1.7.0
