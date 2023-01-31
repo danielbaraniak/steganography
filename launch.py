@@ -31,21 +31,18 @@ def main():
 
     stego_coder = RobustStegoCoder(Dwt('haar', level=3), levels_to_encode=1, quality_level=args.quality_level, alpha=1)
 
-    try:
-        image = cv2.imread(args.filename)
+    image = cv2.imread(args.filename)
 
-        if args.decode:
-            msg = stego_coder.decode_color_image(image)
-            logging.info(f"Decoding '{args.filename}';{msg=}")
-            print(msg)
-        if args.message:
-            image = stego_coder.encode_color_image(img=image, message=args.message)
-            logging.info(f"Encoding '{args.message}' in '{args.filename}'")
-        if args.output:
-            cv2.imwrite(args.output, image, [int(cv2.IMWRITE_JPEG_QUALITY), 100])
-    except Exception:
-        logging.error("Cannot decode the message")
-        print("Error")
+    if args.decode:
+        msg = stego_coder.decode_color_image(image)
+        logging.info(f"Decoding '{args.filename}';{msg=}")
+        print(msg)
+    if args.message:
+        image = stego_coder.encode_color_image(img=image, message=args.message)
+        logging.info(f"Encoding '{args.message}' in '{args.filename}'")
+    if args.output:
+        cv2.imwrite(args.output, image, [int(cv2.IMWRITE_JPEG_QUALITY), 100])
+
 
 
 if __name__ == '__main__':

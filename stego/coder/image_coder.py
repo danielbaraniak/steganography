@@ -1,14 +1,13 @@
 import logging
-from itertools import cycle
 
+import cv2
 import numpy as np
+import unireedsolomon as rs
 
 from stego.coder import mdle_codec
-from stego.coder.message import message_to_dec, dec_to_message, Base2MessageCoder
+from stego.coder.message import message_to_dec, dec_to_message, loop_message, find_original_string, encode_message, \
+    decode_message
 from stego.coder.transform.blocking import CropBlocker
-from collections import Counter
-import unireedsolomon as rs
-import cv2
 
 
 class StegoCoder:
@@ -17,31 +16,10 @@ class StegoCoder:
         self.message_length = message_length
         self.message_coder = rs.RSCoder(128, message_length)
 
-    def _loop_message(self, message):
-        return cycle(message)
-
-    def find_original_string(self, strings):
-        # Initialize the result string with the same length as the input strings
-        result = ['-'] * len(strings[0])
-
-        # Iterate through each position in the strings
-        for i in range(len(strings[0])):
-            # Count the number of occurrences of each character at this position
-            count = Counter([string[i] for string in strings])
-            # Find the character with the highest count
-            most_common = count.most_common(1)[0][0]
-            # Add the most common character to the result string
-            result[i] = most_common
-
-        # Join the result list into a single string
-        result_string = ''.join(result)
-
-        return result_string
-
     def prepare_message(self, message):
         msg = self.message_coder.encode(message)
         msg = message_to_dec(msg)
-        return self._loop_message(msg)
+        return loop_message(msg)
 
     def decode_message(self, retrieved_data):
         message_raw = dec_to_message(retrieved_data)
@@ -55,7 +33,7 @@ class StegoCoder:
                 continue
             messages.append(message)
 
-        result = self.find_original_string(messages)
+        result = find_original_string(messages)
 
         return result
 
@@ -135,7 +113,6 @@ def get_diffs(original, modified, transform):
 class RobustStegoCoder:
     def __init__(self, transform, levels_to_encode: int = 1, quality_level=50, alpha: float = 1):
         self.transform = transform
-        self.message_coder = rs.RSCoder(128, MSG_LEN)
         self.levels_to_encode = levels_to_encode
         self.alpha = alpha
         self.quality_level = quality_level
@@ -144,53 +121,6 @@ class RobustStegoCoder:
         comp = compress_image(image, quality_level)
         mvs = get_diffs(image, comp, self.transform)
         return mvs
-
-    def _loop_message(self, message):
-        return cycle(message)
-
-    def find_original_string(self, strings):
-        # Initialize the result string with the same length as the input strings
-        result = [' '] * MSG_LEN
-
-        # Iterate through each position in the strings
-        for i in range(len(strings[0])):
-            # Count the number of occurrences of each character at this position
-            count = Counter([string[i] for string in strings])
-            # Find the character with the highest count
-            most_common = count.most_common(1)[0][0]
-            # Add the most common character to the result string
-            result[i] = most_common
-
-        # Join the result list into a single string
-        result_string = ''.join(result)
-
-        return result_string[:MSG_LEN]
-
-    def encode_message(self, message: str):
-        message = message.ljust(MSG_LEN)
-        message = self.message_coder.encode(message=message)
-        msg = Base2MessageCoder.encode(message)
-        return self._loop_message(msg)
-
-    def decode_message(self, retrieved_data):
-        message_raw = Base2MessageCoder.decode(retrieved_data)
-        data = self.split_list(message_raw, 128)
-        messages = []
-        for s in data:
-            try:
-                s = self.message_coder.decode(s)
-            except:
-                continue
-            messages.append(s)
-        result = self.find_original_string(messages)
-
-        return result, len(data), len(messages)
-
-    def split_list(self, arr, sublist_size):
-        # pad a list
-        if len(arr) % sublist_size != 0:
-            arr += "" * (sublist_size - (len(arr) % sublist_size))
-        return [arr[x:x + sublist_size] for x in range(0, len(arr), sublist_size)]
 
     def encode_block(self, block, data, mv, alpha):
 
@@ -241,7 +171,7 @@ class RobustStegoCoder:
         all_mvs = self.get_mvs(img, self.quality_level)
         levels = self.transform.forward(img)[:]
 
-        msg_iterator = iter(self.encode_message(message))
+        msg_iterator = iter(encode_message(message, 128))
 
         new_coefficients = []
         for level, mvs in zip(levels[1:self.levels_to_encode + 1], all_mvs[1:self.levels_to_encode + 1]):
@@ -265,7 +195,7 @@ class RobustStegoCoder:
             for band in level:
                 extracted_data += self.decode_band(band)
 
-        return self.decode_message(extracted_data)[0]
+        return decode_message(extracted_data, 128)[0]
 
     def encode_color_image(self, img, message):
         color_bands = []
@@ -284,7 +214,7 @@ class RobustStegoCoder:
         for m, _, _ in metadata:
             msgs.append(m)
 
-        return self.find_original_string(msgs).rstrip()
+        return find_original_string(msgs).rstrip()
 
     def decode_color_image_verbose(self, img):
         channel_messages = []
@@ -296,6 +226,9 @@ class RobustStegoCoder:
                 for band in level:
                     extracted_data += self.decode_band(band)
 
-            channel_messages.append(self.decode_message(extracted_data))
+            channel_messages.append(decode_message(extracted_data, 128))
 
         return channel_messages
+
+    def __str__(self) -> str:
+        return f"{str(self.transform.wavelet)}_{str(self.transform.level)}_q({self.quality_level})"

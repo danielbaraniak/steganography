@@ -1,3 +1,14 @@
+from collections import Counter
+from itertools import cycle
+
+import numpy as np
+from reedsolo import ReedSolomonError, RSCodec
+
+
+class MessageNotFoundException(Exception):
+    pass
+
+
 def byte_to_dec_array(byte):
     result = [None, None, None, None]
     result[0] = (byte & 0b11000000) >> 6
@@ -46,7 +57,7 @@ def _split_list(arr, sublist_size):
 
 
 class MessageCoder:
-    def encode(string):
+    def encode(msg):
         ...
 
     def decode(encoded_data):
@@ -90,37 +101,67 @@ class Base4MessageCoder(MessageCoder):
         return bytes(dec_list).decode('utf-8', errors='ignore')
 
 
-class Base2MessageCoder(MessageCoder):
-    def encode(string):
-        ascii_values = [ord(c) for c in string]
+def loop_message(message):
+    return cycle(message)
 
-        binary_strings = [bin(av) for av in ascii_values]
-        binary_strings = [b.replace('0b', '') for b in binary_strings]
-        binary_strings = [b.rjust(8, '0') for b in binary_strings]
 
-        # Create a list of the bits in each binary string
-        bits = [[int(bit) for bit in b] for b in binary_strings]
+def split_list(arr, sublist_size):
+    arr = np.array(arr)
+    if arr.size % sublist_size:
+        pad_width = (sublist_size - (arr.size % sublist_size))
+        arr = np.pad(arr, (0, pad_width), 'constant', constant_values=(0, 0))
+    return np.reshape(arr, (arr.size // sublist_size, sublist_size))
 
-        # Flatten the list of bits into a single list
-        bits = [bit for sublist in bits for bit in sublist]
 
-        return bits
+def encode_message(message: str, capacity: int):
+    rsc = RSCodec(capacity - len(message))
+    encoded_message = rsc.encode(message.encode('ascii'))
+    arr = np.array(encoded_message)
+    return np.unpackbits(arr)
 
-    def decode(bits):
-        # Split the list of bits into 8-bit chunks
-        binary_strings = [bits[i:i+8] for i in range(0, len(bits), 8)]
 
-        # Join each chunk into a single binary string
-        binary_strings = ['0b' + ''.join([str(b) for b in binary_string])
-                          for binary_string in binary_strings]
+def decode_message(retrieved_data: list, capacity: int):
+    byte_values = np.packbits(retrieved_data)
+    raw_message = bytearray(byte_values.flatten())
+    if len(raw_message) >= 128:
+        raw_message = raw_message[:128]
 
-        # Convert each binary string to an integer
-        ascii_values = [int(b, 2) for b in binary_strings]
+    result = None
 
-        # Convert each integer to a character
-        characters = [chr(av) for av in ascii_values]
+    for i in range(min(capacity, 128)):
+        try:
+            rsc = RSCodec(i)
+            decoded = rsc.decode(raw_message)
+            if decoded[0] and decoded[0][0]:
+                decoded[0].decode('ascii')
+                result = decoded
+        except ReedSolomonError:
+            continue
+        except UnicodeDecodeError:
+            continue
 
-        # Join the characters together to create a string
-        string = ''.join(characters)
+    if result is None:
+        raise MessageNotFoundException
 
-        return string
+    return result
+
+
+def find_original_string(strings):
+    if not strings:
+        raise MessageNotFoundException
+
+    # Initialize the result string with the same length as the input strings
+
+    msg_len = min([len(s) for s in strings])
+    result = bytearray([0] * msg_len)
+
+    # Iterate through each position in the strings
+    for i in range(msg_len):
+        # Count the number of occurrences of each character at this position
+        count = Counter([string[i] for string in strings])
+        # Find the character with the highest count
+        most_common = count.most_common(1)[0][0]
+        # Add the most common character to the result string
+        result[i] = most_common
+
+    return result
