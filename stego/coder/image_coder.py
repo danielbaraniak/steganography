@@ -205,7 +205,7 @@ class RobustStegoCoder:
         for m, _, _ in metadata:
             msgs.append(m)
 
-        return find_original_string(msgs).rstrip()
+        return find_original_string(msgs).decode('ascii')
 
     def decode_color_image_verbose(self, img):
         channel_messages = []
