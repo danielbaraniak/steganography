@@ -2,11 +2,11 @@ import logging
 
 import cv2
 import numpy as np
-import unireedsolomon as rs
+from reedsolo import ReedSolomonError, RSCodec
 
 from stego.coder import mdle_codec
-from stego.coder.message import message_to_dec, dec_to_message, loop_message, find_original_string, encode_message, \
-    decode_message
+from stego.coder.message import loop_message, find_original_string, encode_message, decode_message, Base4MessageCoder, \
+    split_list
 from stego.coder.transform.blocking import CropBlocker
 
 
@@ -14,22 +14,22 @@ class StegoCoder:
     def __init__(self, transform, message_length):
         self.transform = transform
         self.message_length = message_length
-        self.message_coder = rs.RSCoder(128, message_length)
+        self.message_coder = RSCodec(128 - message_length)
 
     def prepare_message(self, message):
         msg = self.message_coder.encode(message)
-        msg = message_to_dec(msg)
+        msg = Base4MessageCoder.encode(msg)
         return loop_message(msg)
 
     def decode_message(self, retrieved_data):
-        message_raw = dec_to_message(retrieved_data)
-        data = self.split_list(message_raw, 128)
+        message_raw = Base4MessageCoder.decode(retrieved_data)
+        data = split_list(message_raw, 128)
         messages = []
         for s in data[:20]:
             print(s)
             try:
                 message, _ = self.message_coder.decode(s)
-            except:
+            except ReedSolomonError:
                 continue
             messages.append(message)
 
@@ -37,15 +37,8 @@ class StegoCoder:
 
         return result
 
-    def split_list(self, arr, sublist_size):
-        # pad a list
-        if len(arr) % sublist_size != 0:
-            arr += "" * (sublist_size - (len(arr) % sublist_size))
-        return [arr[x:x + sublist_size] for x in range(0, len(arr), sublist_size)]
-
     def encode(self, img, message):
         self.transform.forward(img)
-        ll = self.transform.coefficients[0]
         coefficients = self.transform.coefficients[-1]
 
         msg_iterator = iter(self.prepare_message(message))
@@ -58,7 +51,6 @@ class StegoCoder:
 
     def decode(self, img):
         self.transform.forward(img)
-        ll = self.transform.coefficients[0]
         coefficients = self.transform.coefficients[-1]
 
         extracted_data = []
@@ -181,8 +173,7 @@ class RobustStegoCoder:
                 )
             )
 
-        self.transform.coefficients[1:self.levels_to_encode +
-                                      1] = new_coefficients
+        self.transform.coefficients[1:self.levels_to_encode + 1] = new_coefficients
 
         return self.transform.inverse()
 

@@ -9,6 +9,39 @@ class MessageNotFoundException(Exception):
     pass
 
 
+def loop_message(message):
+    return cycle(message)
+
+
+def split_list(arr, sublist_size):
+    arr = np.array(arr)
+    if arr.size % sublist_size:
+        pad_width = (sublist_size - (arr.size % sublist_size))
+        arr = np.pad(arr, (0, pad_width), 'constant', constant_values=(0, 0))
+    return np.reshape(arr, (arr.size // sublist_size, sublist_size))
+
+
+def find_original_string(strings):
+    if not strings:
+        raise MessageNotFoundException
+
+    # Initialize the result string with the same length as the input strings
+
+    msg_len = min([len(s) for s in strings])
+    result = bytearray([0] * msg_len)
+
+    # Iterate through each position in the strings
+    for i in range(msg_len):
+        # Count the number of occurrences of each character at this position
+        count = Counter([string[i] for string in strings])
+        # Find the character with the highest count
+        most_common = count.most_common(1)[0][0]
+        # Add the most common character to the result string
+        result[i] = most_common
+
+    return result
+
+
 def byte_to_dec_array(byte):
     result = [None, None, None, None]
     result[0] = (byte & 0b11000000) >> 6
@@ -29,88 +62,37 @@ def dec_array_to_byte(encoded_data):
     return result
 
 
-def message_to_dec(msg: str):
-    byte_message = bytes(msg, 'utf-8')
-    arr = []
-    for b in byte_message:
-        arr.extend(byte_to_dec_array(b))
-
-    return _split_list(arr, 8)
-
-
-def dec_to_message(arr):
-    arr = [int(i) for i in arr]
-    chunks = _split_list(arr, 4)
-
-    dec_list = []
-    for chunk in chunks:
-        dec_list.append(dec_array_to_byte(chunk))
-
-    return bytes(dec_list).decode('utf-8', errors='ignore')
-
-
-def _split_list(arr, sublist_size):
-    # pad a list
-    if len(arr) % sublist_size != 0:
-        arr += [0] * (sublist_size - (len(arr) % sublist_size))
-    return [arr[x:x + sublist_size] for x in range(0, len(arr), sublist_size)]
-
-
 class MessageCoder:
+    @staticmethod
     def encode(msg):
         ...
 
+    @staticmethod
     def decode(encoded_data):
         ...
 
 
 class Base4MessageCoder(MessageCoder):
-    def byte_to_dec_array(byte):
-        result = [None, None, None, None]
-        result[0] = (byte & 0b11000000) >> 6
-        result[1] = (byte & 0b00110000) >> 4
-        result[2] = (byte & 0b00001100) >> 2
-        result[3] = (byte & 0b00000011)
 
-        return result
-
-    def dec_array_to_byte(encoded_data):
-        result = 0
-        result |= int(encoded_data[0]) << 6
-        result |= int(encoded_data[1]) << 4
-        result |= int(encoded_data[2]) << 2
-        result |= int(encoded_data[3])
-
-        return result
-
+    @staticmethod
     def encode(msg: str):
         byte_message = bytes(msg, 'utf-8')
         arr = []
         for b in byte_message:
-            arr.extend(Base4MessageCoder.byte_to_dec_array(b))
+            arr.extend(byte_to_dec_array(b))
 
-        return arr
+        return split_list(arr, 8)
 
+    @staticmethod
     def decode(arr):
-        chunks = _split_list(arr, 4)
+        arr = [int(i) for i in arr]
+        chunks = split_list(arr, 4)
 
         dec_list = []
         for chunk in chunks:
-            dec_list.append(Base4MessageCoder.dec_array_to_byte(chunk))
+            dec_list.append(dec_array_to_byte(chunk))
 
         return bytes(dec_list).decode('utf-8', errors='ignore')
-
-
-def loop_message(message):
-    return cycle(message)
-
-
-def split_list(arr, sublist_size):
-    arr = np.array(arr)
-    if arr.size % sublist_size:
-        pad_width = (sublist_size - (arr.size % sublist_size))
-        arr = np.pad(arr, (0, pad_width), 'constant', constant_values=(0, 0))
-    return np.reshape(arr, (arr.size // sublist_size, sublist_size))
 
 
 def encode_message(message: str, capacity: int):
@@ -142,26 +124,5 @@ def decode_message(retrieved_data: list, capacity: int):
 
     if result is None:
         raise MessageNotFoundException
-
-    return result
-
-
-def find_original_string(strings):
-    if not strings:
-        raise MessageNotFoundException
-
-    # Initialize the result string with the same length as the input strings
-
-    msg_len = min([len(s) for s in strings])
-    result = bytearray([0] * msg_len)
-
-    # Iterate through each position in the strings
-    for i in range(msg_len):
-        # Count the number of occurrences of each character at this position
-        count = Counter([string[i] for string in strings])
-        # Find the character with the highest count
-        most_common = count.most_common(1)[0][0]
-        # Add the most common character to the result string
-        result[i] = most_common
 
     return result
