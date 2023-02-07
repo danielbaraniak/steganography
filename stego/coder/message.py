@@ -42,26 +42,6 @@ def find_original_string(strings):
     return result
 
 
-def byte_to_dec_array(byte):
-    result = [None, None, None, None]
-    result[0] = (byte & 0b11000000) >> 6
-    result[1] = (byte & 0b00110000) >> 4
-    result[2] = (byte & 0b00001100) >> 2
-    result[3] = (byte & 0b00000011)
-
-    return result
-
-
-def dec_array_to_byte(encoded_data):
-    result = 0
-    result |= int(encoded_data[0]) << 6
-    result |= int(encoded_data[1]) << 4
-    result |= int(encoded_data[2]) << 2
-    result |= int(encoded_data[3])
-
-    return result
-
-
 class MessageCoder:
     @staticmethod
     def encode(msg):
@@ -73,13 +53,32 @@ class MessageCoder:
 
 
 class Base4MessageCoder(MessageCoder):
+    @staticmethod
+    def _byte_to_dec_array(byte):
+        result = [None, None, None, None]
+        result[0] = (byte & 0b11000000) >> 6
+        result[1] = (byte & 0b00110000) >> 4
+        result[2] = (byte & 0b00001100) >> 2
+        result[3] = (byte & 0b00000011)
+
+        return result
+
+    @staticmethod
+    def _dec_array_to_byte(encoded_data):
+        result = 0
+        result |= int(encoded_data[0]) << 6
+        result |= int(encoded_data[1]) << 4
+        result |= int(encoded_data[2]) << 2
+        result |= int(encoded_data[3])
+
+        return result
 
     @staticmethod
     def encode(msg: str):
         byte_message = bytes(msg, 'utf-8')
         arr = []
         for b in byte_message:
-            arr.extend(byte_to_dec_array(b))
+            arr.extend(Base4MessageCoder._byte_to_dec_array(b))
 
         return split_list(arr, 8)
 
@@ -90,7 +89,7 @@ class Base4MessageCoder(MessageCoder):
 
         dec_list = []
         for chunk in chunks:
-            dec_list.append(dec_array_to_byte(chunk))
+            dec_list.append(Base4MessageCoder._dec_array_to_byte(chunk))
 
         return bytes(dec_list).decode('utf-8', errors='ignore')
 

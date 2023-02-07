@@ -49,7 +49,7 @@ def main():
     if args.message:
         image = cv2.imread(args.input)
         image = stego_coder.encode_color_image(img=image, message=args.message)
-        logging.info(f"Encoding '{args.message}' in '{args.filename}'")
+        logging.info(f"Encoding '{args.message}' in '{args.input}'")
     if args.output:
         cv2.imwrite(args.output, image, [int(cv2.IMWRITE_JPEG_QUALITY), 100])
 
