@@ -2,72 +2,15 @@ import logging
 
 import cv2
 import numpy as np
-from reedsolo import ReedSolomonError, RSCodec
 
-from stego.coder import mdle_codec
-from stego.coder.message import loop_message, find_original_string, encode_message, decode_message, Base4MessageCoder, \
-    split_list
+from stego.coder.message import find_original_string, encode_message, decode_message
 from stego.coder.transform.blocking import CropBlocker
-
-
-class StegoCoder:
-    def __init__(self, transform, message_length):
-        self.transform = transform
-        self.message_length = message_length
-        self.message_coder = RSCodec(128 - message_length)
-
-    def prepare_message(self, message):
-        msg = self.message_coder.encode(message)
-        msg = Base4MessageCoder.encode(msg)
-        return loop_message(msg)
-
-    def decode_message(self, retrieved_data):
-        message_raw = Base4MessageCoder.decode(retrieved_data)
-        data = split_list(message_raw, 128)
-        messages = []
-        for s in data[:20]:
-            print(s)
-            try:
-                message, _ = self.message_coder.decode(s)
-            except ReedSolomonError:
-                continue
-            messages.append(message)
-
-        result = find_original_string(messages)
-
-        return result
-
-    def encode(self, img, message):
-        self.transform.forward(img)
-        coefficients = self.transform.coefficients[-1]
-
-        msg_iterator = iter(self.prepare_message(message))
-        coefficients_new = [mdle_codec.encode_band(
-            band, msg_iterator) for band in coefficients]
-
-        self.transform.coefficients[-1] = tuple(coefficients_new)
-
-        return self.transform.inverse()
-
-    def decode(self, img):
-        self.transform.forward(img)
-        coefficients = self.transform.coefficients[-1]
-
-        extracted_data = []
-
-        for band in coefficients:
-            extracted_data += mdle_codec.decode_band(band)
-
-        return self.decode_message(extracted_data)
-
 
 perimeter_mask = np.array([
     [True, True, True],
     [True, False, True],
     [True, True, True]
 ])
-
-MSG_LEN = 30
 
 
 def compress_image(image, quality_level):
