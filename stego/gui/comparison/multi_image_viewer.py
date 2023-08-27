@@ -1,9 +1,9 @@
-import numpy as np
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QImage, QPixmap
 from PySide6.QtWidgets import QWidget, QGraphicsView, QHBoxLayout, QGraphicsScene
 
-from stego.gui.utils import ndarray_to_qimage, qimage_to_ndarray
+from stego.gui.comparison.multi_image_model import MultiImageModel
+from stego.gui.utils import ndarray_to_qimage, qimage_to_ndarray, normalize_for_rgb888
 
 
 class MultiImageViewer(QWidget):
@@ -11,12 +11,14 @@ class MultiImageViewer(QWidget):
     ZOOM_OUT_FACTOR = 1 / ZOOM_IN_FACTOR
     image_updated = Signal(int)
 
-    def __init__(self, num_images=2):
+    def __init__(self, model: MultiImageModel, num_images=None):
         super().__init__()
 
-        self.images: list[np.ndarray | None] = [None for _ in range(num_images)]
-        self.views = [QGraphicsView(self) for _ in range(num_images)]
+        self.model = model
+        self.views = [QGraphicsView(self) for _ in range(num_images or self.model.rowCount())]
         self.layout = QHBoxLayout()
+
+        self.model.dataChanged.connect(self._update_view)
 
         for view in self.views:
             self.setup_drag_and_drop(view)
@@ -25,17 +27,17 @@ class MultiImageViewer(QWidget):
 
         self.setLayout(self.layout)
 
-    def set_image(self, i: int, img_array: np.ndarray) -> None:
-        self.images[i] = img_array
-        self._update_view(i)
-        self.image_updated.emit(i)
-
-    def get_image(self, i: int) -> np.ndarray | None:
-        return self.images[i]
-
-    def _update_view(self, i: int) -> None:
-        q_img = ndarray_to_qimage(self.images[i])
-        self._put_image(i, q_img)
+    def _update_view(self, index) -> None:
+        if index == -1:
+            for i in range(self.model.rowCount()):
+                self._update_view(i)
+            self.all_views_updated()
+            return
+        img = self.model.get_image(index)
+        if img is None:
+            return
+        q_img = ndarray_to_qimage(normalize_for_rgb888(img))
+        self._put_image(index, q_img)
 
     def _put_image(self, i: int, q_img: QImage) -> None:
         pixmap = QPixmap.fromImage(q_img)
@@ -58,10 +60,7 @@ class MultiImageViewer(QWidget):
             img_array = qimage_to_ndarray(q_img)
             index = self.views.index(view)
 
-            self.images[index] = img_array
-            self._put_image(index, q_img)
-
-            self.image_updated.emit(index)
+            self.model.set_image(index, img_array)
 
         view.dragEnterEvent = dragEnterEvent
         view.dropEvent = dropEvent
@@ -90,3 +89,6 @@ class MultiImageViewer(QWidget):
 
         for view in self.views:
             view.setTransform(view.transform().scale(factor, factor))
+
+    def all_views_updated(self):
+        pass
