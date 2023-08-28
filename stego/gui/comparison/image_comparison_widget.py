@@ -18,18 +18,17 @@ class ImageComparisonWidget(QWidget):
         super().__init__()
 
         self.model = MultiImageModel()
-
         self.viewer = DifferenceImageViewer(self.model)
 
-        # Transformation settings
         self.level_selector = QComboBox()
         self.level_selector.addItems([str(i) for i in range(5)])
+        self.level_selector.setCurrentIndex(3)
         self.wavelet_selector = QComboBox()
-        self.wavelet_selector.addItems(pywt.wavelist())
+        self.wavelet_selector.addItems(pywt.wavelist(kind="discrete"))
+        self.wavelet_selector.setCurrentText("haar")
         self.transform_button = QPushButton("Transform")
         self.transform_button.clicked.connect(self.on_transform_button_clicked)
 
-        # View settings
         self.color_selector = QComboBox()
         self.color_selector.addItems([channel.value for channel in ColorChannel])
         self.color_selector.currentTextChanged.connect(self.on_channel_changed)
@@ -46,7 +45,6 @@ class ImageComparisonWidget(QWidget):
     def _setup_layout(self):
         layout = QVBoxLayout()
 
-        # Transformation layout
         transform_layout = QHBoxLayout()
         transform_layout.addWidget(QLabel("Level:"))
         transform_layout.addWidget(self.level_selector)
@@ -54,7 +52,6 @@ class ImageComparisonWidget(QWidget):
         transform_layout.addWidget(self.wavelet_selector)
         transform_layout.addWidget(self.transform_button)
 
-        # View layout
         view_layout = QHBoxLayout()
         view_layout.addWidget(QLabel("Color:"))
         view_layout.addWidget(self.color_selector)
@@ -79,7 +76,7 @@ class ImageComparisonWidget(QWidget):
             "level": int(self.level_selector.currentText()),
             "wavelet": self.wavelet_selector.currentText(),
         }
-
+        self.model.level = 0
         self.model.transform_images(**settings)
         self.update_view_level(settings["level"])
 

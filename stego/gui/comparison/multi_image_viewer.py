@@ -3,7 +3,7 @@ from PySide6.QtGui import QImage, QPixmap
 from PySide6.QtWidgets import QWidget, QGraphicsView, QHBoxLayout, QGraphicsScene
 
 from stego.gui.comparison.multi_image_model import MultiImageModel
-from stego.gui.utils import ndarray_to_qimage, qimage_to_ndarray, normalize_for_rgb888
+from stego.gui.utils import ndarray_to_qimage, qimage_to_ndarray, normalize_for_8U
 
 
 class MultiImageViewer(QWidget):
@@ -16,27 +16,30 @@ class MultiImageViewer(QWidget):
 
         self.model = model
         self.views = [QGraphicsView(self) for _ in range(num_images or self.model.rowCount())]
-        self.layout = QHBoxLayout()
 
         self.model.dataChanged.connect(self._update_view)
 
         for view in self.views:
             self.setup_drag_and_drop(view)
             self.setup_zoom_and_pan(view)
-            self.layout.addWidget(view)
 
-        self.setLayout(self.layout)
+        self.initiate_layout()
+
+    def initiate_layout(self):
+        layout = QHBoxLayout()
+        for view in self.views:
+            layout.addWidget(view)
+        self.setLayout(layout)
 
     def _update_view(self, index) -> None:
         if index == -1:
             for i in range(self.model.rowCount()):
                 self._update_view(i)
-            self.all_views_updated()
             return
         img = self.model.get_image(index)
         if img is None:
             return
-        q_img = ndarray_to_qimage(normalize_for_rgb888(img))
+        q_img = ndarray_to_qimage(normalize_for_8U(img))
         self._put_image(index, q_img)
 
     def _put_image(self, i: int, q_img: QImage) -> None:
@@ -89,6 +92,3 @@ class MultiImageViewer(QWidget):
 
         for view in self.views:
             view.setTransform(view.transform().scale(factor, factor))
-
-    def all_views_updated(self):
-        pass

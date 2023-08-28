@@ -1,24 +1,20 @@
+import cv2
 import numpy as np
 from PySide6.QtGui import QImage
 
 
-def normalize_for_rgb888(img: np.ndarray) -> np.ndarray:
+def normalize_for_8U(img: np.ndarray) -> np.ndarray:
     is_grayscale = img.ndim == 2
-    is_rgb888 = img.ndim == 3 and img.shape[2] == 3
+    is_rgb = img.ndim == 3 and img.shape[2] == 3
 
     if is_grayscale:
         img = np.stack([img] * 3, axis=-1)
-    elif not is_rgb888:
-        raise ValueError("Image must be grayscale or RGB888.")
+    elif not is_rgb:
+        raise ValueError("Image must be grayscale or RGB.")
 
-    range_size = np.max(img) - np.min(img)
+    normalized_img = cv2.normalize(img, None, 0, 255, cv2.NORM_MINMAX, dtype=cv2.CV_8U)
 
-    if range_size == 0:
-        normalized_array = img
-    else:
-        normalized_array = ((img - np.min(img)) * (255 / range_size)).astype(np.uint8)
-
-    return normalized_array
+    return normalized_img
 
 
 def qimage_to_ndarray(q_img: QImage) -> np.ndarray:
@@ -32,7 +28,15 @@ def qimage_to_ndarray(q_img: QImage) -> np.ndarray:
 
 
 def ndarray_to_qimage(img_array: np.ndarray) -> QImage:
-    height, width, channel = img_array.shape
-    bytes_per_line = channel * width
-    q_img = QImage(img_array.data, width, height, bytes_per_line, QImage.Format_RGB888)
+    match img_array.ndim:
+        case 2:
+            height, width = img_array.shape
+            bytes_per_line = width
+            img_format = QImage.Format_Grayscale8
+        case _:
+            height, width, channel = img_array.shape
+            bytes_per_line = channel * width
+            img_format = QImage.Format_RGB888
+
+    q_img = QImage(img_array.data, width, height, bytes_per_line, img_format)
     return q_img
