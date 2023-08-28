@@ -6,6 +6,9 @@ class MetricsWidget(QWidget):
 
         self.layout = QGridLayout()
 
+        self.loading_indicator = QLabel("Computing metrics...")
+        self.loading_indicator.hide()
+
         # Descriptive labels
         self.mseDescLabel = QLabel("MSE:")
         self.psnrDescLabel = QLabel("PSNR:")
@@ -52,13 +55,16 @@ class MetricsWidget(QWidget):
             (self.diffStdDescLabel, self.diffStdLabel),
         ]
 
+        self.layout.addWidget(self.loading_indicator, 0, 0, 1, 2)
         for idx, (desc, label) in enumerate(labels):
+            idx += 1
             self.layout.addWidget(desc, idx, 0)
             self.layout.addWidget(label, idx, 1)
 
         self.setLayout(self.layout)
 
     def set_metrics(self, stats):
+        self.loading_indicator.hide()
         self.mseLabel.setText(str(stats['mse']))
         self.psnrLabel.setText(str(stats['psnr']))
         self.ssimLabel.setText(str(stats['ssim']))

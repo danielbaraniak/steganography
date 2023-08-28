@@ -7,9 +7,7 @@ def normalize_for_8U(img: np.ndarray) -> np.ndarray:
     is_grayscale = img.ndim == 2
     is_rgb = img.ndim == 3 and img.shape[2] == 3
 
-    if is_grayscale:
-        img = np.stack([img] * 3, axis=-1)
-    elif not is_rgb:
+    if not (is_grayscale or is_rgb):
         raise ValueError("Image must be grayscale or RGB.")
 
     normalized_img = cv2.normalize(img, None, 0, 255, cv2.NORM_MINMAX, dtype=cv2.CV_8U)
