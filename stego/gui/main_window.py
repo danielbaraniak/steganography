@@ -11,5 +11,6 @@ class Window(QMainWindow):
         self.setWindowTitle("Stego coder")
         self.coder_widget = CoderWidget()
         self.comparison_widget = ImageComparisonWidget()
+
         self.setCentralWidget(self.comparison_widget)
         self.resize(1200, 600)

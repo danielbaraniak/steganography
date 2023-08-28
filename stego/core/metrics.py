@@ -1,9 +1,13 @@
+import cv2
 import numpy as np
 from skimage import metrics
 
+from stego.core.utils import match_sizes
+
 
 def get_metrics(img1, img2):
-    difference = img1 - img2
+    img1, img2 = match_sizes(img1, img2)
+    difference = cv2.absdiff(img1, img2)
     is_grayscale = img1.ndim == 2
     stats = {
         "img1": {

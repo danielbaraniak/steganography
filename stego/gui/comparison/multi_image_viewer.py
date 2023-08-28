@@ -92,3 +92,7 @@ class MultiImageViewer(QWidget):
 
         for view in self.views:
             view.setTransform(view.transform().scale(factor, factor))
+
+    def reset_view(self):
+        for view in self.views:
+            view.setScene(None)

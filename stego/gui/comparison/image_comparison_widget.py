@@ -40,6 +40,9 @@ class ImageComparisonWidget(QWidget):
         self.level_view_selector = QComboBox()
         self.level_view_selector.currentTextChanged.connect(self.on_level_changed)
 
+        self.reset_view_button = QPushButton("Reset view")
+        self.reset_view_button.clicked.connect(lambda: self.viewer.reset_view())
+
         self._setup_layout()
 
     def _setup_layout(self):
@@ -59,16 +62,18 @@ class ImageComparisonWidget(QWidget):
         view_layout.addWidget(self.level_view_selector)
         view_layout.addWidget(QLabel("Detail:"))
         view_layout.addWidget(self.detail_selector)
+        view_layout.addWidget(self.reset_view_button)
 
         layout.addLayout(transform_layout)
         layout.addLayout(view_layout)
+
         layout.addWidget(self.viewer)
 
         self.setLayout(layout)
 
     def update_view_level(self, level):
         self.level_view_selector.clear()
-        self.level_view_selector.addItems([str(i) for i in range(level+1)])
+        self.level_view_selector.addItems([str(i) for i in range(level + 1)])
         self.level_view_selector.setCurrentIndex(level)
 
     def on_transform_button_clicked(self):
