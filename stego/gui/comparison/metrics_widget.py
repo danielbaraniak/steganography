@@ -18,7 +18,6 @@ class MetricsWidget(QWidget):
         self.img1StdDescLabel = QLabel("Image 1 - Std:")
         self.img2MinDescLabel = QLabel("Image 2 - Min:")
         self.img2MaxDescLabel = QLabel("Image 2 - Max:")
-        self.img2MeanDescLabel = QLabel("Image 2 - Mean:")
         self.img2StdDescLabel = QLabel("Image 2 - Std:")
         self.diffMinDescLabel = QLabel("Difference - Min:")
         self.diffMaxDescLabel = QLabel("Difference - Max:")
@@ -33,7 +32,6 @@ class MetricsWidget(QWidget):
         self.img1StdLabel = QLabel()
         self.img2MinLabel = QLabel()
         self.img2MaxLabel = QLabel()
-        self.img2MeanLabel = QLabel()
         self.img2StdLabel = QLabel()
         self.diffMinLabel = QLabel()
         self.diffMaxLabel = QLabel()
@@ -48,7 +46,6 @@ class MetricsWidget(QWidget):
             (self.img1StdDescLabel, self.img1StdLabel),
             (self.img2MinDescLabel, self.img2MinLabel),
             (self.img2MaxDescLabel, self.img2MaxLabel),
-            (self.img2MeanDescLabel, self.img2MeanLabel),
             (self.img2StdDescLabel, self.img2StdLabel),
             (self.diffMinDescLabel, self.diffMinLabel),
             (self.diffMaxDescLabel, self.diffMaxLabel),
@@ -65,15 +62,14 @@ class MetricsWidget(QWidget):
 
     def set_metrics(self, stats):
         self.loading_indicator.hide()
-        self.mseLabel.setText(str(stats['mse']))
-        self.psnrLabel.setText(str(stats['psnr']))
-        self.ssimLabel.setText(str(stats['ssim']))
+        self.mseLabel.setText(str(stats['diff']['mse']))
+        self.psnrLabel.setText(str(stats['diff']['psnr']))
+        self.ssimLabel.setText(str(stats['diff']['ssim']))
         self.img1MinLabel.setText(str(stats['img1']['min']))
         self.img1MaxLabel.setText(str(stats['img1']['max']))
         self.img1StdLabel.setText(str(stats['img1']['std']))
         self.img2MinLabel.setText(str(stats['img2']['min']))
         self.img2MaxLabel.setText(str(stats['img2']['max']))
-        self.img2MeanLabel.setText(str(stats['img2']['mean']))
         self.img2StdLabel.setText(str(stats['img2']['std']))
         self.diffMinLabel.setText(str(stats['diff']['min']))
         self.diffMaxLabel.setText(str(stats['diff']['max']))
