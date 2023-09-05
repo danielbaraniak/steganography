@@ -30,3 +30,6 @@ venv.bak/
 
 notebooks/
 *.log
+images/
+output/
+

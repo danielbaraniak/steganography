@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 from skimage import metrics
 
+from stego.core import blocking
 from stego.core.utils import match_sizes
 
 
@@ -40,3 +41,21 @@ def diff_metrics(img1, img2):
         "mse": metrics.mean_squared_error(img1, img2)
     }
     return diff
+
+
+def psnr(img1, img2, data_range):
+    return {"psnr": metrics.peak_signal_noise_ratio(img1, img2, data_range=data_range)}
+
+
+def mean_diff(img1, img2, **kwargs):
+    return {"mean_diff": np.mean(img1) - np.mean(img2)}
+
+
+def thresholds(original, compressed, data_range=255):
+    block_size = 3
+    diff = cv2.absdiff(original, compressed) / 255
+    diff_blocks = blocking.divide_image(diff, block_size)
+    return {
+        "mean_block_threshold_90": np.quantile(np.abs(np.mean(diff_blocks, axis=(1, 2))), 0.9),
+        "pixel_threshold_90": np.quantile(np.abs(diff), 0.9)
+    }
