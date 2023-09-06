@@ -1,76 +1,42 @@
-from PySide6.QtWidgets import QWidget, QGridLayout, QLabel
+from PySide6.QtWidgets import QWidget, QGridLayout, QLabel, QVBoxLayout
+
 
 class MetricsWidget(QWidget):
     def __init__(self):
         super().__init__()
 
-        self.layout = QGridLayout()
+        main_layout = QVBoxLayout()
 
         self.loading_indicator = QLabel("Computing metrics...")
         self.loading_indicator.hide()
 
-        # Descriptive labels
-        self.mseDescLabel = QLabel("MSE:")
-        self.psnrDescLabel = QLabel("PSNR:")
-        self.ssimDescLabel = QLabel("SSIM:")
-        self.img1MinDescLabel = QLabel("Image 1 - Min:")
-        self.img1MaxDescLabel = QLabel("Image 1 - Max:")
-        self.img1StdDescLabel = QLabel("Image 1 - Std:")
-        self.img2MinDescLabel = QLabel("Image 2 - Min:")
-        self.img2MaxDescLabel = QLabel("Image 2 - Max:")
-        self.img2StdDescLabel = QLabel("Image 2 - Std:")
-        self.diffMinDescLabel = QLabel("Difference - Min:")
-        self.diffMaxDescLabel = QLabel("Difference - Max:")
-        self.diffStdDescLabel = QLabel("Difference - Std:")
+        self.metrics_individual = [("Min:", "min"), ("Max:", "max"), ("Shape:", "shape")]
+        self.labels_individual = [(QLabel(desc_text), QLabel(), QLabel()) for desc_text, _ in self.metrics_individual]
 
-        # Data labels
-        self.mseLabel = QLabel()
-        self.psnrLabel = QLabel()
-        self.ssimLabel = QLabel()
-        self.img1MinLabel = QLabel()
-        self.img1MaxLabel = QLabel()
-        self.img1StdLabel = QLabel()
-        self.img2MinLabel = QLabel()
-        self.img2MaxLabel = QLabel()
-        self.img2StdLabel = QLabel()
-        self.diffMinLabel = QLabel()
-        self.diffMaxLabel = QLabel()
-        self.diffStdLabel = QLabel()
+        self.metrics_common = [("MSE:", "mse"), ("PSNR:", "psnr"), ("SSIM:", "ssim"), ("Mean diff:", "abs_diff_mean"),
+                               ("Min diff:", "min"), ("Max diff:", "max")]
+        self.labels_common = [(QLabel(desc_text), QLabel()) for desc_text, _ in self.metrics_common]
 
-        labels = [
-            (self.mseDescLabel, self.mseLabel),
-            (self.psnrDescLabel, self.psnrLabel),
-            (self.ssimDescLabel, self.ssimLabel),
-            (self.img1MinDescLabel, self.img1MinLabel),
-            (self.img1MaxDescLabel, self.img1MaxLabel),
-            (self.img1StdDescLabel, self.img1StdLabel),
-            (self.img2MinDescLabel, self.img2MinLabel),
-            (self.img2MaxDescLabel, self.img2MaxLabel),
-            (self.img2StdDescLabel, self.img2StdLabel),
-            (self.diffMinDescLabel, self.diffMinLabel),
-            (self.diffMaxDescLabel, self.diffMaxLabel),
-            (self.diffStdDescLabel, self.diffStdLabel),
-        ]
+        main_layout.addWidget(self.loading_indicator)
+        main_layout.addLayout(self.create_grid(self.metrics_individual, self.labels_individual))
+        main_layout.addLayout(self.create_grid(self.metrics_common, self.labels_common))
+        self.setLayout(main_layout)
 
-        self.layout.addWidget(self.loading_indicator, 0, 0, 1, 2)
-        for idx, (desc, label) in enumerate(labels):
-            idx += 1
-            self.layout.addWidget(desc, idx, 0)
-            self.layout.addWidget(label, idx, 1)
+    def create_grid(self, metrics, labels):
+        grid_layout = QGridLayout()
 
-        self.setLayout(self.layout)
+        for idx, ((desc_text, _), labels) in enumerate(zip(metrics, labels)):
+            for i, label in enumerate(labels):
+                grid_layout.addWidget(label, idx, i)
+
+        return grid_layout
 
     def set_metrics(self, stats):
         self.loading_indicator.hide()
-        self.mseLabel.setText(str(stats['diff']['mse']))
-        self.psnrLabel.setText(str(stats['diff']['psnr']))
-        self.ssimLabel.setText(str(stats['diff']['ssim']))
-        self.img1MinLabel.setText(str(stats['img1']['min']))
-        self.img1MaxLabel.setText(str(stats['img1']['max']))
-        self.img1StdLabel.setText(str(stats['img1']['std']))
-        self.img2MinLabel.setText(str(stats['img2']['min']))
-        self.img2MaxLabel.setText(str(stats['img2']['max']))
-        self.img2StdLabel.setText(str(stats['img2']['std']))
-        self.diffMinLabel.setText(str(stats['diff']['min']))
-        self.diffMaxLabel.setText(str(stats['diff']['max']))
-        self.diffStdLabel.setText(str(stats['diff']['std']))
+
+        for (_, key), (_, label_img1, label_img2) in zip(self.metrics_individual, self.labels_individual):
+            label_img1.setText(str(stats['img1'][key]))
+            label_img2.setText(str(stats['img2'][key]))
+
+        for (_, key), (_, val) in zip(self.metrics_common, self.labels_common):
+            val.setText(str(stats['diff'][key]))

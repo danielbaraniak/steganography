@@ -1,15 +1,14 @@
-from PySide6.QtCore import Qt, Signal
+from PySide6.QtCore import Qt
 from PySide6.QtGui import QImage, QPixmap
 from PySide6.QtWidgets import QWidget, QGraphicsView, QHBoxLayout, QGraphicsScene
 
+from stego import config
 from stego.gui.comparison.multi_image_model import MultiImageModel
 from stego.gui.utils import ndarray_to_qimage, qimage_to_ndarray, normalize_for_8U
 
 
 class MultiImageViewer(QWidget):
-    ZOOM_IN_FACTOR = 1.25
-    ZOOM_OUT_FACTOR = 1 / ZOOM_IN_FACTOR
-    image_updated = Signal(int)
+    gui_settings = config.get_gui_settings()
 
     def __init__(self, model: MultiImageModel, num_images=None):
         super().__init__()
@@ -21,7 +20,7 @@ class MultiImageViewer(QWidget):
 
         for view in self.views:
             self.setup_drag_and_drop(view)
-            self.setup_zoom_and_pan(view)
+            self.setup_zoom_and_scroll(view)
 
         self.initiate_layout()
 
@@ -68,7 +67,7 @@ class MultiImageViewer(QWidget):
         view.dragEnterEvent = dragEnterEvent
         view.dropEvent = dropEvent
 
-    def setup_zoom_and_pan(self, view):
+    def setup_zoom_and_scroll(self, view):
         view.wheelEvent = self.zoom_event
 
         view.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
@@ -86,12 +85,26 @@ class MultiImageViewer(QWidget):
             view.verticalScrollBar().setValue(value)
 
     def zoom_event(self, event):
-        factor = (
-            self.ZOOM_IN_FACTOR if event.angleDelta().y() > 0 else self.ZOOM_OUT_FACTOR
-        )
 
-        for view in self.views:
-            view.setTransform(view.transform().scale(factor, factor))
+        if event.modifiers() & Qt.ControlModifier:
+            factor = (
+                self.gui_settings.zoom_in_factor if event.angleDelta().y() > 0 else self.gui_settings.zoom_out_factor
+            )
+
+            for view in self.views:
+                view.setTransform(view.transform().scale(factor, factor))
+
+        elif event.modifiers() & Qt.ShiftModifier:
+            for view in self.views:
+                view.horizontalScrollBar().setValue(
+                    view.horizontalScrollBar().value() - event.angleDelta().y() * self.gui_settings.scroll_step
+                )
+
+        else:
+            for view in self.views:
+                view.verticalScrollBar().setValue(
+                    view.verticalScrollBar().value() - event.angleDelta().y() * self.gui_settings.scroll_step
+                )
 
     def reset_view(self):
         for view in self.views:

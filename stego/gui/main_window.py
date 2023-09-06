@@ -1,6 +1,6 @@
 from PySide6.QtWidgets import QMainWindow
 
-from stego.gui.coder_widget import CoderWidget
+from stego.gui.encode.encoder_widget import EncoderWidget
 from stego.gui.comparison.image_comparison_widget import ImageComparisonWidget
 
 
@@ -9,8 +9,8 @@ class Window(QMainWindow):
         super().__init__()
 
         self.setWindowTitle("Stego coder")
-        self.coder_widget = CoderWidget()
+        self.coder_widget = EncoderWidget()
         self.comparison_widget = ImageComparisonWidget()
 
-        self.setCentralWidget(self.comparison_widget)
+        self.setCentralWidget(self.coder_widget)
         self.resize(1200, 600)

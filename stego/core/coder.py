@@ -1,3 +1,4 @@
+import cv2
 import numpy as np
 import pywt
 from numpy import ndarray
@@ -107,3 +108,21 @@ def message_consolidator(image: np.ndarray, message_parts: list[bytes], *, coeff
                                                         coefficients=coefficients)
     trimmed_message_parts = [message_part[:coefficient_capacity] for message_part in message_parts]
     return b"".join(trimmed_message_parts)
+
+
+def encode_color_image(image: np.ndarray, message: bytes, *, coefficients: list[str], alpha: float = 1,
+                       block_size: int = 3, level: int = 2, wavelet: str = "haar") -> np.ndarray:
+    """Encodes a message into a color image."""
+    parameters = {
+        "coefficients": coefficients,
+        "alpha": alpha,
+        "block_size": block_size,
+        "level": level,
+        "wavelet": wavelet,
+    }
+
+    message_parts = message_dispatcher(image, message, **parameters)
+    channels = cv2.split(cv2.cvtColor(image, cv2.COLOR_RGB2YCrCb))
+    stego_channels = [encode(channel, message_parts, **parameters) for channel in channels]
+    stego = cv2.cvtColor(cv2.merge(stego_channels), cv2.COLOR_YCrCb2RGB)
+    return stego
