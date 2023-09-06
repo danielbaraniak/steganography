@@ -2,9 +2,8 @@ from os import path
 
 import cv2
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QImage, QPixmap
 from PySide6.QtWidgets import QWidget, QHBoxLayout, QLabel, QFileDialog, QPushButton, QVBoxLayout, QMessageBox, \
-    QScrollArea, QGroupBox, QGridLayout, QSlider, QLineEdit
+    QGridLayout, QSlider, QLineEdit
 
 from stego.coder.image_coder import RobustStegoCoder
 from stego.coder.message import MessageNotFoundException

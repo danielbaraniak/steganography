@@ -5,6 +5,13 @@ level = 2
 wavelet = "haar"
 coefficients = ["ad", "da", "dd"]
 
+[gui]
+zoom_in_factor = 1.25
+zoom_out_factor = 0.8
+scroll_step = 0.5
+image_formats = "Images (*.png *.jpg *.jpeg *.bmp)"
+
+
 [directories]
 images = "./images/"
 output = "./output/"
