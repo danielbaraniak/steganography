@@ -3,6 +3,7 @@ import numpy as np
 
 from stego.core import coder
 from stego.core import message as msg_utils
+from stego.core import blocking
 
 color_spaces = {
     "RGB": None,
@@ -36,6 +37,8 @@ def encode_color_image(
         "level": level,
         "wavelet": wavelet,
     }
+
+    image, _ = blocking.crop_image_to_divisible(image, block_size * 2 ** level)
 
     message_parts = coder.uniform_message_dispatcher(image, message, **parameters)
     channels = list(

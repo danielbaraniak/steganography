@@ -52,7 +52,7 @@ class EncoderWidget(QWidget):
         self.alpha_label = QLabel()
         self.alpha_slider = QSlider(self)
         self.alpha_slider.setMinimum(0)
-        self.alpha_slider.setMaximum(600)
+        self.alpha_slider.setMaximum(800)
         self.alpha_slider.setSingleStep(1)
         self.alpha_slider.setOrientation(Qt.Horizontal)
         self.alpha_slider.setTickPosition(QSlider.TickPosition.TicksBelow)
