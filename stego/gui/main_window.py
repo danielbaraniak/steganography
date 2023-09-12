@@ -2,7 +2,6 @@ from PySide6.QtWidgets import QMainWindow, QTabWidget
 
 from stego.gui.decode.decoder_widget import DecoderWidget
 from stego.gui.encode.encoder_widget import EncoderWidget
-from stego.gui.comparison.image_comparison_widget import ImageComparisonWidget
 
 
 class Window(QMainWindow):
