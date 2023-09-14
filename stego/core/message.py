@@ -14,6 +14,6 @@ def binary_to_bytes(binary_data: np.ndarray | list[int]) -> bytes:
 
 def extract_repeating_fragment(message: bytes):
     fragments = message.split(b'\x00')
-    fragment_occurrences = {fragment: fragments.count(fragment) for fragment in fragments if len(fragment) > 0}
+    fragment_occurrences = {fragment: fragments.count(fragment) for fragment in fragments if len(fragment) > 5}
     most_frequent_fragment = max(fragment_occurrences, key=fragment_occurrences.get)
     return most_frequent_fragment

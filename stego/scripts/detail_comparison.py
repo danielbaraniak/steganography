@@ -7,8 +7,9 @@ import numpy as np
 import pywt
 
 from stego import config
-from stego.core.metrics import thresholds
-
+from stego.core import metrics
+from joblib import Parallel, delayed
+from tqdm import tqdm
 
 
 # Image Processing Functions
@@ -99,7 +100,7 @@ def plot_channel_data(axes, data, channels, quality_levels, color_pallet):
                 ax.grid(True)
 
 
-def create_graph(img_path: str, output_dir: str, conversion: int, settings: dict):
+def create_graph(img_path: str | Path, output_dir: str | Path, conversion: int, settings: dict):
     img_original = cv2.imread(img_path, cv2.IMREAD_COLOR)
     img_to_analyze = cv2.cvtColor(img_original, conversion)
 
@@ -120,10 +121,10 @@ def create_graph(img_path: str, output_dir: str, conversion: int, settings: dict
 
 # Main Execution
 if __name__ == '__main__':
-    output_dir = Path(config.get_directories_config()["output"]) / "plots"
+    output_dir = Path(config.get_output_dir()) / "plots"
     Path(output_dir).mkdir(parents=True, exist_ok=True)
 
-    img_dir_path = config.get_directories_config()["images"]
+    img_dir_path = config.get_images_dir()
     file_names = config.get_images_list()
     img_paths = [img_dir_path + file_name for file_name in file_names]
 
@@ -133,13 +134,18 @@ if __name__ == '__main__':
         cv2.COLOR_BGR2HSV: ("H", "S", "V"),
     }
 
-    for image_path in img_paths:
-        for conversion in [cv2.COLOR_BGR2YCrCb, cv2.COLOR_BGR2RGB]:
-            settings = {
-                "qualities": range(50, 100, 15),
-                "max_level": 6,
-                "wavelet": 'haar',
-                "metric": thresholds,
-                "channels": conversions[conversion]
-            }
-            create_graph(image_path, output_dir, conversion, settings)
+    n_jobs = -1
+    color_spaces = [cv2.COLOR_BGR2YCrCb, cv2.COLOR_BGR2RGB, cv2.COLOR_BGR2HSV]
+    total_tasks = len(img_paths) * len(color_spaces)
+
+    Parallel(n_jobs=n_jobs, verbose=10)(
+        delayed(create_graph)(image_path, output_dir, conversion, {
+            "qualities": range(50, 100, 15),
+            "max_level": 6,
+            "wavelet": 'haar',
+            "metric": metrics.thresholds,
+            "channels": conversions[conversion]
+        })
+        for image_path in tqdm(img_paths, total=total_tasks)
+        for conversion in color_spaces
+    )
