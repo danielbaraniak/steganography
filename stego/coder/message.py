@@ -16,8 +16,8 @@ def loop_message(message):
 def split_list(arr, sublist_size):
     arr = np.array(arr)
     if arr.size % sublist_size:
-        pad_width = (sublist_size - (arr.size % sublist_size))
-        arr = np.pad(arr, (0, pad_width), 'constant', constant_values=(0, 0))
+        pad_width = sublist_size - (arr.size % sublist_size)
+        arr = np.pad(arr, (0, pad_width), "constant", constant_values=(0, 0))
     return np.reshape(arr, (arr.size // sublist_size, sublist_size))
 
 
@@ -59,7 +59,7 @@ class Base4MessageCoder(MessageCoder):
         result[0] = (byte & 0b11000000) >> 6
         result[1] = (byte & 0b00110000) >> 4
         result[2] = (byte & 0b00001100) >> 2
-        result[3] = (byte & 0b00000011)
+        result[3] = byte & 0b00000011
 
         return result
 
@@ -75,7 +75,7 @@ class Base4MessageCoder(MessageCoder):
 
     @staticmethod
     def encode(msg: str):
-        byte_message = bytes(msg, 'utf-8')
+        byte_message = bytes(msg, "utf-8")
         arr = []
         for b in byte_message:
             arr.extend(Base4MessageCoder._byte_to_dec_array(b))
@@ -91,12 +91,12 @@ class Base4MessageCoder(MessageCoder):
         for chunk in chunks:
             dec_list.append(Base4MessageCoder._dec_array_to_byte(chunk))
 
-        return bytes(dec_list).decode('utf-8', errors='ignore')
+        return bytes(dec_list).decode("utf-8", errors="ignore")
 
 
 def encode_message(message: str, capacity: int):
     rsc = RSCodec(capacity - len(message))
-    encoded_message = rsc.encode(message.encode('ascii'))
+    encoded_message = rsc.encode(message.encode("ascii"))
     arr = np.array(encoded_message)
     return np.unpackbits(arr)
 
@@ -114,7 +114,7 @@ def decode_message(retrieved_data: list, capacity: int):
             rsc = RSCodec(i)
             decoded = rsc.decode(raw_message)
             if decoded[0] and decoded[0][0]:
-                decoded[0].decode('ascii')
+                decoded[0].decode("ascii")
                 result = decoded
         except ReedSolomonError:
             continue

@@ -3,12 +3,12 @@ from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QVBoxLayout,
     QPushButton,
-    QLineEdit,
     QLabel,
     QWidget,
     QFileDialog,
     QSlider,
-    QMessageBox, QTextEdit,
+    QMessageBox,
+    QTextEdit,
 )
 
 from stego import config

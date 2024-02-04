@@ -12,6 +12,7 @@ from stego.coder.transform.blocking import CropBlocker
 
 coeffs_order = [(0, 0), (0, 1), (0, 2), (1, 2), (2, 2), (2, 1), (2, 0), (1, 0)]
 
+
 def is_edge_block(block, T=4):
     U = []
     center = block[1, 1]
@@ -40,8 +41,7 @@ lcv_to_mv = [0, 1, 2, -1]
 def embed(block, decimal_data: np.ndarray):
     center_coeff = block[1, 1]
     perimeter_coeffs = np.array([block[idx] for idx in coeffs_order])
-    lcvs = lcv(decimal_data, extraction_function(
-        perimeter_coeffs, center_coeff))
+    lcvs = lcv(decimal_data, extraction_function(perimeter_coeffs, center_coeff))
     mvs = [lcv_to_mv[int(lcv)] for lcv in lcvs]
 
     for idx, mv in zip(coeffs_order, mvs):
@@ -78,6 +78,7 @@ def decode_band(band):
             encoded_data.extend(extract(block))
     return encoded_data
 
+
 class MdleCoder:
     def __init__(self, transform, message_length):
         self.transform = transform
@@ -110,8 +111,7 @@ class MdleCoder:
         coefficients = self.transform.coefficients[-1]
 
         msg_iterator = iter(self.prepare_message(message))
-        coefficients_new = [encode_band(
-            band, msg_iterator) for band in coefficients]
+        coefficients_new = [encode_band(band, msg_iterator) for band in coefficients]
 
         self.transform.coefficients[-1] = tuple(coefficients_new)
 

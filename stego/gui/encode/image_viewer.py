@@ -1,6 +1,14 @@
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QDragEnterEvent, QDropEvent, QPixmap
-from PySide6.QtWidgets import QWidget, QGraphicsView, QLabel, QPushButton, QVBoxLayout, QGraphicsScene, QHBoxLayout
+from PySide6.QtWidgets import (
+    QWidget,
+    QGraphicsView,
+    QLabel,
+    QPushButton,
+    QVBoxLayout,
+    QGraphicsScene,
+    QHBoxLayout,
+)
 
 from stego import config
 from stego.gui.encode.image_model import ImageModel
@@ -63,19 +71,22 @@ class ImageViewer(QWidget):
 
     def zoom_event(self, event):
         if event.modifiers() & Qt.ControlModifier:
-
             factor = (
-                self.gui_settings.zoom_in_factor if event.angleDelta().y() > 0 else self.gui_settings.zoom_out_factor
+                self.gui_settings.zoom_in_factor
+                if event.angleDelta().y() > 0
+                else self.gui_settings.zoom_out_factor
             )
 
             self.view.scale(factor, factor)
 
         elif event.modifiers() & Qt.ShiftModifier:
             self.view.horizontalScrollBar().setValue(
-                self.view.horizontalScrollBar().value() - event.angleDelta().y() * self.gui_settings.scroll_step
+                self.view.horizontalScrollBar().value()
+                - event.angleDelta().y() * self.gui_settings.scroll_step
             )
 
         else:
             self.view.verticalScrollBar().setValue(
-                self.view.verticalScrollBar().value() - event.angleDelta().y() * self.gui_settings.scroll_step
+                self.view.verticalScrollBar().value()
+                - event.angleDelta().y() * self.gui_settings.scroll_step
             )

@@ -16,7 +16,10 @@ def dwt_rgb_forward(img: np.ndarray, *args, **kwargs):
 
 
 def dwt_rgb_inverse(coefficients, *args, **kwargs):
-    channels = [pywt.waverecn(channel_coeffs, *args, **kwargs) for channel_coeffs in coefficients]
+    channels = [
+        pywt.waverecn(channel_coeffs, *args, **kwargs)
+        for channel_coeffs in coefficients
+    ]
     return cv2.merge(channels)
 
 
@@ -24,5 +27,7 @@ def match_sizes(img1: np.ndarray, img2: np.ndarray) -> tuple[np.ndarray, np.ndar
     if img1.shape != img2.shape:
         logging.warning("Images have different shapes")
         img1_height, img1_width = img1.shape[:2]
-        img2 = cv2.resize(img2, (img1_width, img1_height), interpolation=cv2.INTER_LANCZOS4)
+        img2 = cv2.resize(
+            img2, (img1_width, img1_height), interpolation=cv2.INTER_LANCZOS4
+        )
     return img1, img2

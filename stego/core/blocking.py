@@ -1,7 +1,9 @@
 import numpy as np
 
 
-def crop_image_to_divisible(img: np.ndarray, block_size: int) -> tuple[any, tuple[int, int]]:
+def crop_image_to_divisible(
+    img: np.ndarray, block_size: int
+) -> tuple[any, tuple[int, int]]:
     new_height, new_width = get_new_shape(img, block_size)
     return img[:new_height, :new_width], (new_height, new_width)
 
@@ -50,9 +52,9 @@ def merge_blocks(blocks: list[np.ndarray], img_shape: tuple) -> np.ndarray:
     return merged_img
 
 
-def calculate_percentile_threshold(original_img: np.ndarray,
-                                   compressed_img: np.ndarray,
-                                   percentile: int) -> float:
+def calculate_percentile_threshold(
+    original_img: np.ndarray, compressed_img: np.ndarray, percentile: int
+) -> float:
     diff = np.abs(original_img - compressed_img)
     threshold = np.percentile(diff, percentile)
     return threshold

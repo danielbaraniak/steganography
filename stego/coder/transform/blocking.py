@@ -6,11 +6,11 @@ def pad_image(img: np.ndarray, block_size=8):
     padding_size = []
 
     for dimension in img.shape:
-        padding_size.append(
-            (block_size - (dimension % block_size)) % block_size)
+        padding_size.append((block_size - (dimension % block_size)) % block_size)
 
     img = cv2.copyMakeBorder(
-        img, 0, padding_size[0], 0, padding_size[1], cv2.BORDER_REFLECT)
+        img, 0, padding_size[0], 0, padding_size[1], cv2.BORDER_REFLECT
+    )
     return img
 
 
@@ -29,11 +29,9 @@ def stack_image(blocks):
 def crop_to_fit(img: np.ndarray, block_size):
     new_size = []
     for dimension in img.shape:
-        new_size.append(
-            dimension - (dimension % block_size)
-        )
+        new_size.append(dimension - (dimension % block_size))
 
-    return img[:new_size[0], :new_size[1]]
+    return img[: new_size[0], : new_size[1]]
 
 
 def divide_image(img: np.ndarray, block_size=8):
@@ -65,5 +63,3 @@ class CropBlocker:
         h, w = stacked.shape
         image[:h, :w] = stacked
         return image
-
-

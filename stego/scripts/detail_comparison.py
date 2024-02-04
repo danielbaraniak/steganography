@@ -15,11 +15,13 @@ from tqdm import tqdm
 # Image Processing Functions
 def compress_image(img, quality=90):
     encode_param = [cv2.IMWRITE_JPEG_QUALITY, quality]
-    _, encoded_data = cv2.imencode('.jpg', img, encode_param)
+    _, encoded_data = cv2.imencode(".jpg", img, encode_param)
     return cv2.imdecode(encoded_data, cv2.IMREAD_COLOR)
 
 
-def decompose(img: np.ndarray, wavelet: str, max_level: int) -> list[list[tuple[np.ndarray, ...]]]:
+def decompose(
+    img: np.ndarray, wavelet: str, max_level: int
+) -> list[list[tuple[np.ndarray, ...]]]:
     decompositions = []
     for ch in range(img.shape[2]):
         channel = img[:, :, ch]
@@ -34,6 +36,7 @@ def decompose(img: np.ndarray, wavelet: str, max_level: int) -> list[list[tuple[
 
 # Comparisons
 
+
 def compare_decompositions(original, compressed, metric, channels) -> dict:
     comparison_results = {}
 
@@ -41,29 +44,50 @@ def compare_decompositions(original, compressed, metric, channels) -> dict:
         channel_results = {}
         for level in range(len(original[ch_idx])):
             level_results = {}
-            for coeff_name, orig_coeff, comp_coeff in zip(['cA', 'cH', 'cV', 'cD'], original[ch_idx][level],
-                                                          compressed[ch_idx][level]):
+            for coeff_name, orig_coeff, comp_coeff in zip(
+                ["cA", "cH", "cV", "cD"],
+                original[ch_idx][level],
+                compressed[ch_idx][level],
+            ):
                 data_range = (level + 1) * 255
-                level_results[coeff_name] = metric(orig_coeff, comp_coeff, data_range=data_range)
+                level_results[coeff_name] = metric(
+                    orig_coeff, comp_coeff, data_range=data_range
+                )
             channel_results[f"l{level + 1}"] = level_results
         comparison_results[ch] = channel_results
     return comparison_results
 
 
-def compare(original_img: np.ndarray, compressed_imgs: list[tuple[int, np.ndarray]], wavelet: str, max_level: int,
-            metric, channels) -> dict:
+def compare(
+    original_img: np.ndarray,
+    compressed_imgs: list[tuple[int, np.ndarray]],
+    wavelet: str,
+    max_level: int,
+    metric,
+    channels,
+) -> dict:
     results = {}
     original_decompositions = decompose(original_img, wavelet, max_level)
     for i, (quality, compressed_img) in enumerate(compressed_imgs):
         compressed_decompositions = decompose(compressed_img, wavelet, max_level)
-        comparison = compare_decompositions(original_decompositions, compressed_decompositions, metric, channels)
+        comparison = compare_decompositions(
+            original_decompositions, compressed_decompositions, metric, channels
+        )
         results[str(quality)] = comparison
     return results
 
 
-def compress_and_compare(original_img: np.ndarray, channels: tuple[str, ...], wavelet: str, max_level: int,
-                         qualities: list[int], metric) -> dict:
-    compressed_imgs = [(quality, compress_image(original_img, quality)) for quality in qualities]
+def compress_and_compare(
+    original_img: np.ndarray,
+    channels: tuple[str, ...],
+    wavelet: str,
+    max_level: int,
+    qualities: list[int],
+    metric,
+) -> dict:
+    compressed_imgs = [
+        (quality, compress_image(original_img, quality)) for quality in qualities
+    ]
     return compare(original_img, compressed_imgs, wavelet, max_level, metric, channels)
 
 
@@ -84,15 +108,29 @@ def plot_channel_data(axes, data, channels, quality_levels, color_pallet):
     for i, quality in enumerate(quality_levels):
         for j, channel in enumerate(channels):
             ax = axes[i, j]
-            for coef, color in zip(['cA', 'cH', 'cV', 'cD'], color_pallet):
-                plot_data1 = [data[quality][channel][f"l{level}"][coef]["mean_block_threshold_90"] for level in
-                              range(1, len(data[quality][channel]) + 1)]
-                plot_data2 = [data[quality][channel][f"l{level}"][coef]["pixel_threshold_90"] for level in
-                              range(1, len(data[quality][channel]) + 1)]
-                ax.plot(range(1, len(data[quality][channel]) + 1), plot_data1, marker='o', label=f"{coef} - block",
-                        color=color[0])
-                ax.plot(range(1, len(data[quality][channel]) + 1), plot_data2, marker='o', label=f"{coef} - pixel",
-                        color=color[1])
+            for coef, color in zip(["cA", "cH", "cV", "cD"], color_pallet):
+                plot_data1 = [
+                    data[quality][channel][f"l{level}"][coef]["mean_block_threshold_90"]
+                    for level in range(1, len(data[quality][channel]) + 1)
+                ]
+                plot_data2 = [
+                    data[quality][channel][f"l{level}"][coef]["pixel_threshold_90"]
+                    for level in range(1, len(data[quality][channel]) + 1)
+                ]
+                ax.plot(
+                    range(1, len(data[quality][channel]) + 1),
+                    plot_data1,
+                    marker="o",
+                    label=f"{coef} - block",
+                    color=color[0],
+                )
+                ax.plot(
+                    range(1, len(data[quality][channel]) + 1),
+                    plot_data2,
+                    marker="o",
+                    label=f"{coef} - pixel",
+                    color=color[1],
+                )
                 ax.set_title(f"{channel} Channel - Quality {quality}")
                 ax.set_xlabel("Level")
                 ax.set_ylabel("Mean Difference at 90th percentile")
@@ -100,15 +138,24 @@ def plot_channel_data(axes, data, channels, quality_levels, color_pallet):
                 ax.grid(True)
 
 
-def create_graph(img_path: str | Path, output_dir: str | Path, conversion: int, settings: dict):
+def create_graph(
+    img_path: str | Path, output_dir: str | Path, conversion: int, settings: dict
+):
     img_original = cv2.imread(img_path, cv2.IMREAD_COLOR)
     img_to_analyze = cv2.cvtColor(img_original, conversion)
 
     data = compress_and_compare(img_to_analyze, **settings)
     quality_levels = data.keys()
-    fig, axes = plt.subplots(nrows=len(quality_levels), ncols=len(settings["channels"]), figsize=(18, 18))
+    fig, axes = plt.subplots(
+        nrows=len(quality_levels), ncols=len(settings["channels"]), figsize=(18, 18)
+    )
 
-    color_pallet = [('#003366', '#66ccff'), ('#006633', '#66ff99'), ('#cc0000', '#ff99cc'), ('#660066', '#cc99ff')]
+    color_pallet = [
+        ("#003366", "#66ccff"),
+        ("#006633", "#66ff99"),
+        ("#cc0000", "#ff99cc"),
+        ("#660066", "#cc99ff"),
+    ]
 
     plot_channel_data(axes, data, settings["channels"], quality_levels, color_pallet)
 
@@ -120,7 +167,7 @@ def create_graph(img_path: str | Path, output_dir: str | Path, conversion: int, 
 
 
 # Main Execution
-if __name__ == '__main__':
+if __name__ == "__main__":
     output_dir = Path(config.get_output_dir()) / "plots"
     Path(output_dir).mkdir(parents=True, exist_ok=True)
 
@@ -139,13 +186,18 @@ if __name__ == '__main__':
     total_tasks = len(img_paths) * len(color_spaces)
 
     Parallel(n_jobs=n_jobs, verbose=10)(
-        delayed(create_graph)(image_path, output_dir, conversion, {
-            "qualities": range(50, 100, 15),
-            "max_level": 6,
-            "wavelet": 'haar',
-            "metric": metrics.thresholds,
-            "channels": conversions[conversion]
-        })
+        delayed(create_graph)(
+            image_path,
+            output_dir,
+            conversion,
+            {
+                "qualities": range(50, 100, 15),
+                "max_level": 6,
+                "wavelet": "haar",
+                "metric": metrics.thresholds,
+                "channels": conversions[conversion],
+            },
+        )
         for image_path in tqdm(img_paths, total=total_tasks)
         for conversion in color_spaces
     )

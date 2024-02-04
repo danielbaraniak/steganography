@@ -35,7 +35,7 @@ def convert_to_cv2(image):
 
 
 if __name__ == "__main__":
-    base_dir = Path(config.get_output_dir()) / 'resampling'
+    base_dir = Path(config.get_output_dir()) / "resampling"
     Path(base_dir).mkdir(parents=True, exist_ok=True)
 
     image_sizes = [(3000, 4000), (2000, 2000), (1024, 2024)]

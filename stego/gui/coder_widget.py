@@ -2,8 +2,18 @@ from os import path
 
 import cv2
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QWidget, QHBoxLayout, QLabel, QFileDialog, QPushButton, QVBoxLayout, QMessageBox, \
-    QGridLayout, QSlider, QLineEdit
+from PySide6.QtWidgets import (
+    QWidget,
+    QHBoxLayout,
+    QLabel,
+    QFileDialog,
+    QPushButton,
+    QVBoxLayout,
+    QMessageBox,
+    QGridLayout,
+    QSlider,
+    QLineEdit,
+)
 
 from stego.coder.image_coder import RobustStegoCoder
 from stego.coder.message import MessageNotFoundException
@@ -37,21 +47,24 @@ class CoderWidget(QWidget):
         self.setLayout(main_layout)
 
     def create_coder_controls(self):
-
         self.compression_quality_slider.setMinimum(10)
         self.compression_quality_slider.setMaximum(100)
         self.compression_quality_slider.setSingleStep(1)
         self.compression_quality_slider.setOrientation(Qt.Horizontal)
         self.compression_quality_slider.setTickPosition(QSlider.TickPosition.TicksBelow)
         self.compression_quality_slider.valueChanged.connect(
-            lambda: self
-            .compression_quality_label
-            .setText(str(self.compression_quality_slider.value()))
+            lambda: self.compression_quality_label.setText(
+                str(self.compression_quality_slider.value())
+            )
         )
         self.compression_quality_slider.setValue(70)
 
         encoder_info = [
-            ("Compression quality", self.compression_quality_slider, self.compression_quality_label),
+            (
+                "Compression quality",
+                self.compression_quality_slider,
+                self.compression_quality_label,
+            ),
             ("Message", self.message_field, QLabel("\t")),
         ]
 
@@ -84,9 +97,7 @@ class CoderWidget(QWidget):
     def decode(self):
         print("in decode")
         stego_coder = RobustStegoCoder(
-            Dwt('haar', level=3),
-            levels_to_encode=1,
-            alpha=1
+            Dwt("haar", level=3), levels_to_encode=1, alpha=1
         )
 
         image = self.image_preview_widget.cv2_image
@@ -105,7 +116,8 @@ class CoderWidget(QWidget):
         message = self.message_field.text()
 
         output_path = QFileDialog.getSaveFileName(
-            self, "Save Image", "", "Image Files (*.jpg)")
+            self, "Save Image", "", "Image Files (*.jpg)"
+        )
 
         if output_path[0]:
             output_path = output_path[0]
@@ -118,12 +130,11 @@ class CoderWidget(QWidget):
 
         image = self.image_preview_widget.cv2_image
         stego_coder = RobustStegoCoder(
-            Dwt('haar', level=3),
+            Dwt("haar", level=3),
             levels_to_encode=1,
             quality_level=compression_quality,
-            alpha=1
+            alpha=1,
         )
         stego_image = stego_coder.encode_color_image(image, message)
 
         cv2.imwrite(output_path, stego_image)
-

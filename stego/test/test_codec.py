@@ -11,9 +11,7 @@ from stego.coder.transform.dwt import Iwt
 
 class TestsCodec(unittest.TestCase):
     def test_embed_than_extract(self):
-        block = np.array([[175, 247, 97],
-                          [124, 198, 215],
-                          [98, 42, 15]])
+        block = np.array([[175, 247, 97], [124, 198, 215], [98, 42, 15]])
 
         original_data = [3, 1, 2, 2, 0, 1, 3, 0]
 
@@ -26,9 +24,11 @@ class TestsCodec(unittest.TestCase):
     def test_embed_than_extract_band(self):
         image = pywt.data.camera()
 
-        original_data = [[3, 1, 2, 2, 0, 1, 3, 1],
-                         [2, 2, 3, 0, 2, 0, 1, 3],
-                         [3, 0, 1, 3, 3, 2, 0, 1]]
+        original_data = [
+            [3, 1, 2, 2, 0, 1, 3, 1],
+            [2, 2, 3, 0, 2, 0, 1, 3],
+            [3, 0, 1, 3, 3, 2, 0, 1],
+        ]
 
         encoded_img = encode_band(image, iter(original_data))
         extracted_data = decode_band(encoded_img)
@@ -40,9 +40,11 @@ class TestsCodec(unittest.TestCase):
     def test_encode_band_keep_dims(self):
         image = pywt.data.camera()
 
-        original_data = [[3, 1, 2, 2, 0, 1, 3, 1],
-                         [2, 2, 3, 0, 2, 0, 1, 3],
-                         [3, 0, 1, 3, 3, 2, 0, 1]]
+        original_data = [
+            [3, 1, 2, 2, 0, 1, 3, 1],
+            [2, 2, 3, 0, 2, 0, 1, 3],
+            [3, 0, 1, 3, 3, 2, 0, 1],
+        ]
 
         encoded_img = encode_band(image, iter(original_data))
         self.assertEqual(image.shape, encoded_img.shape)
@@ -50,7 +52,7 @@ class TestsCodec(unittest.TestCase):
     def test_integration_without_reverse_transform(self):
         message = "v89 wib fkj ghf 20"
         image = pywt.data.camera()
-        iwt = Iwt('haar', level=1)
+        iwt = Iwt("haar", level=1)
         iwt.forward(image)
 
         ll = iwt.coefficients[0]
@@ -63,5 +65,5 @@ class TestsCodec(unittest.TestCase):
         self.assertEqual(message[:16], extracted_message[:16])
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

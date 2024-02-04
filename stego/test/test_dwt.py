@@ -9,7 +9,7 @@ from stego.coder.transform.dwt import Iwt, Dwt
 class TestIwt(TestCase):
     def test_forward_than_inverse(self):
         image = pywt.data.camera()
-        iwt = Iwt('haar', level=3)
+        iwt = Iwt("haar", level=3)
         iwt.forward(image)
         result = iwt.inverse()
 
@@ -17,7 +17,7 @@ class TestIwt(TestCase):
 
     def test_forward_modify_inverse(self):
         image = pywt.data.camera()
-        iwt = Iwt('haar', level=3)
+        iwt = Iwt("haar", level=3)
         iwt.forward(image)
 
         lh = iwt.coefficients[0].copy()
@@ -29,7 +29,7 @@ class TestIwt(TestCase):
 
         self.assertFalse(np.allclose(image, modified))
 
-        iwt = Iwt('haar', level=3)
+        iwt = Iwt("haar", level=3)
         iwt.forward(modified)
 
         lh_new = iwt.coefficients[0].copy()
@@ -40,7 +40,7 @@ class TestIwt(TestCase):
 class TestDwt(TestCase):
     def test_forward_than_inverse(self):
         image = pywt.data.camera()
-        transform = Dwt('haar', level=3)
+        transform = Dwt("haar", level=3)
         transform.forward(image)
         result = transform.inverse()
         self.assertTrue(np.allclose(image, result))

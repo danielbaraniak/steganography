@@ -93,5 +93,5 @@ class ImageComparisonWidget(QWidget):
         self.model.set_detail(detail)
 
     def on_level_changed(self, level):
-        if level != '':
+        if level != "":
             self.model.set_level(int(level))

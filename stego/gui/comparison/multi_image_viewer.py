@@ -14,7 +14,9 @@ class MultiImageViewer(QWidget):
         super().__init__()
 
         self.model = model
-        self.views = [QGraphicsView(self) for _ in range(num_images or self.model.rowCount())]
+        self.views = [
+            QGraphicsView(self) for _ in range(num_images or self.model.rowCount())
+        ]
 
         self.model.dataChanged.connect(self._update_view)
 
@@ -85,10 +87,11 @@ class MultiImageViewer(QWidget):
             view.verticalScrollBar().setValue(value)
 
     def zoom_event(self, event):
-
         if event.modifiers() & Qt.ControlModifier:
             factor = (
-                self.gui_settings.zoom_in_factor if event.angleDelta().y() > 0 else self.gui_settings.zoom_out_factor
+                self.gui_settings.zoom_in_factor
+                if event.angleDelta().y() > 0
+                else self.gui_settings.zoom_out_factor
             )
 
             for view in self.views:
@@ -97,13 +100,15 @@ class MultiImageViewer(QWidget):
         elif event.modifiers() & Qt.ShiftModifier:
             for view in self.views:
                 view.horizontalScrollBar().setValue(
-                    view.horizontalScrollBar().value() - event.angleDelta().y() * self.gui_settings.scroll_step
+                    view.horizontalScrollBar().value()
+                    - event.angleDelta().y() * self.gui_settings.scroll_step
                 )
 
         else:
             for view in self.views:
                 view.verticalScrollBar().setValue(
-                    view.verticalScrollBar().value() - event.angleDelta().y() * self.gui_settings.scroll_step
+                    view.verticalScrollBar().value()
+                    - event.angleDelta().y() * self.gui_settings.scroll_step
                 )
 
     def reset_view(self):

@@ -1,8 +1,15 @@
 import cv2
 from PySide6.QtCore import Signal
 from PySide6.QtGui import QImage, QPixmap
-from PySide6.QtWidgets import QWidget, QLabel, QScrollArea, QVBoxLayout, QFileDialog, QGridLayout, QPushButton, \
-    QMessageBox
+from PySide6.QtWidgets import (
+    QWidget,
+    QLabel,
+    QScrollArea,
+    QVBoxLayout,
+    QFileDialog,
+    QGridLayout,
+    QPushButton,
+)
 
 
 class ImagePreviewWidget(QWidget):
@@ -37,7 +44,8 @@ class ImagePreviewWidget(QWidget):
 
     def open_image(self):
         file_name = QFileDialog.getOpenFileName(
-            self, "Open Image", "", "Image Files (*.png *.jpg *.bmp)")
+            self, "Open Image", "", "Image Files (*.png *.jpg *.bmp)"
+        )
 
         image = None
         if file_name[0]:
@@ -56,5 +64,3 @@ class ImagePreviewWidget(QWidget):
         self.image_path_label.setText(file_name[0])
 
         self.new_image.emit(True)
-
-

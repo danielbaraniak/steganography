@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from typing import Self
 
 import numpy as np
 import pywt
@@ -22,8 +21,7 @@ class Dwt(Transform):
         self.coefficients = None
 
     def forward(self, img):
-        self.coefficients = pywt.wavedec2(
-            img, wavelet=self.wavelet, level=self.level)
+        self.coefficients = pywt.wavedec2(img, wavelet=self.wavelet, level=self.level)
 
         return self.coefficients
 
@@ -42,11 +40,10 @@ class Iwt(Transform):
         if scale:
             self.scale = scale
         else:
-            self.scale = 2 ** level
+            self.scale = 2**level
 
     def forward(self, img):
-        self.coefficients = pywt.wavedec2(
-            img, wavelet=self.wavelet, level=self.level)
+        self.coefficients = pywt.wavedec2(img, wavelet=self.wavelet, level=self.level)
         self._to_int()
         return self.coefficients
 
@@ -61,10 +58,12 @@ class Iwt(Transform):
         arr, coeff_slices = pywt.coeffs_to_array(self.coefficients)
         arr = np.rint(arr * self.scale).astype(int)
         self.coefficients = pywt.array_to_coeffs(
-            arr, coeff_slices, output_format='wavedec2')
+            arr, coeff_slices, output_format="wavedec2"
+        )
 
     def _inverse_to_int(self):
         arr, coeff_slices = pywt.coeffs_to_array(self.coefficients)
-        arr = (arr / self.scale)
+        arr = arr / self.scale
         self.coefficients = pywt.array_to_coeffs(
-            arr, coeff_slices, output_format='wavedec2')
+            arr, coeff_slices, output_format="wavedec2"
+        )

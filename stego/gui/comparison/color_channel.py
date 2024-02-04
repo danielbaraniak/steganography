@@ -12,5 +12,5 @@ class ColorChannel(Enum):
             ColorChannel.RGB: -1,
             ColorChannel.RED: 0,
             ColorChannel.GREEN: 1,
-            ColorChannel.BLUE: 2
+            ColorChannel.BLUE: 2,
         }[self]

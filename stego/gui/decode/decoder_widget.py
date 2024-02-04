@@ -1,5 +1,12 @@
 import cv2
-from PySide6.QtWidgets import QTextBrowser, QWidget, QPushButton, QVBoxLayout, QFileDialog, QMessageBox
+from PySide6.QtWidgets import (
+    QTextBrowser,
+    QWidget,
+    QPushButton,
+    QVBoxLayout,
+    QFileDialog,
+    QMessageBox,
+)
 
 from stego import config
 from stego.core.multichannel_coder import decode_color_image
@@ -10,7 +17,6 @@ IMAGE_FORMATS = config.get_gui_settings().image_formats
 
 
 class DecoderWidget(QWidget):
-
     def __init__(self):
         super().__init__()
 
@@ -30,7 +36,9 @@ class DecoderWidget(QWidget):
         self.setLayout(layout)
 
     def load_image_dialog(self):
-        file_name, _ = QFileDialog.getOpenFileName(self, "Open Image File", "", IMAGE_FORMATS)
+        file_name, _ = QFileDialog.getOpenFileName(
+            self, "Open Image File", "", IMAGE_FORMATS
+        )
         if file_name:
             self.load_image(file_name)
 
@@ -50,6 +58,8 @@ class DecoderWidget(QWidget):
     def get_decoded_message(self):
         default_parameters = config.get_encoder_config()
 
-        decoded_message_bytes, _ = decode_color_image(self.model.image, **default_parameters)
+        decoded_message_bytes, _ = decode_color_image(
+            self.model.image, **default_parameters
+        )
 
         return decoded_message_bytes.decode("ASCII", errors="replace")

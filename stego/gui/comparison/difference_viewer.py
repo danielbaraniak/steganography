@@ -31,7 +31,6 @@ class DifferenceImageViewer(MultiImageViewer):
         super().__init__(model, num_images=3)
         self.model.dataChanged.connect(self._compute_difference)
 
-
         self.thread = QThread()
         self.worker = ComputeMetricsWorker()
         self.worker.moveToThread(self.thread)
@@ -64,5 +63,6 @@ class DifferenceImageViewer(MultiImageViewer):
     def on_metrics_thread_finished(self, metrics):
         self.metrics_widget.set_metrics(metrics)
         self.thread.quit()
+
     def on_model_changed(self, index):
         self._compute_difference()

@@ -25,5 +25,3 @@ class ImageModel(QObject):
 
     def is_stego_empty(self):
         return self.stego_image is None
-
-

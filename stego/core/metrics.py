@@ -35,9 +35,10 @@ def diff_metrics(img1, img2):
         "max": np.max(difference),
         "abs_diff_mean": np.mean(np.abs(difference)),
         "psnr": metrics.peak_signal_noise_ratio(img1, img2, data_range=data_range),
-        "ssim": metrics.structural_similarity(img1, img2, data_range=data_range,
-                                              channel_axis=None if is_grayscale else 2),
-        "mse": metrics.mean_squared_error(img1, img2)
+        "ssim": metrics.structural_similarity(
+            img1, img2, data_range=data_range, channel_axis=None if is_grayscale else 2
+        ),
+        "mse": metrics.mean_squared_error(img1, img2),
     }
     return diff
 
@@ -52,9 +53,11 @@ def mean_diff(img1, img2, **kwargs):
 
 def thresholds(original, compressed, data_range=255):
     block_size = 3
-    diff = cv2.absdiff(original, compressed) / 255
+    diff = cv2.absdiff(original, compressed) / data_range
     diff_blocks = blocking.divide_image(diff, block_size)
     return {
-        "mean_block_threshold_90": np.quantile(np.abs(np.mean(diff_blocks, axis=(1, 2))), 0.9),
-        "pixel_threshold_90": np.quantile(np.abs(diff), 0.9)
+        "mean_block_threshold_90": np.quantile(
+            np.abs(np.mean(diff_blocks, axis=(1, 2))), 0.9
+        ),
+        "pixel_threshold_90": np.quantile(np.abs(diff), 0.9),
     }

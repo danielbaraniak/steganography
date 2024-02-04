@@ -6,18 +6,16 @@ import numpy as np
 from stego.coder.message import find_original_string, encode_message, decode_message
 from stego.coder.transform.blocking import CropBlocker
 
-perimeter_mask = np.array([
-    [True, True, True],
-    [True, False, True],
-    [True, True, True]
-])
+perimeter_mask = np.array([[True, True, True], [True, False, True], [True, True, True]])
 
 
 def compress_image(image, quality_level):
     _, compressed_image_bytes = cv2.imencode(
-        ".jpg", image, [cv2.IMWRITE_JPEG_QUALITY, quality_level])
-    compressed_image_array = cv2.imdecode(np.frombuffer(
-        compressed_image_bytes, np.uint8), cv2.IMREAD_GRAYSCALE)
+        ".jpg", image, [cv2.IMWRITE_JPEG_QUALITY, quality_level]
+    )
+    compressed_image_array = cv2.imdecode(
+        np.frombuffer(compressed_image_bytes, np.uint8), cv2.IMREAD_GRAYSCALE
+    )
 
     return compressed_image_array
 
@@ -46,7 +44,9 @@ def get_diffs(original, modified, transform):
 
 
 class RobustStegoCoder:
-    def __init__(self, transform, levels_to_encode: int = 1, quality_level=50, alpha: float = 1):
+    def __init__(
+        self, transform, levels_to_encode: int = 1, quality_level=50, alpha: float = 1
+    ):
         self.transform = transform
         self.levels_to_encode = levels_to_encode
         self.alpha = alpha
@@ -58,7 +58,6 @@ class RobustStegoCoder:
         return mvs
 
     def encode_block(self, block, data, mv, alpha):
-
         mean = np.mean(block, where=perimeter_mask)
         new_value = mean
         if data == 0:
@@ -86,7 +85,8 @@ class RobustStegoCoder:
             try:
                 for k, block in enumerate(row):
                     blocks[j][k] = self.encode_block(
-                        block, next(message_iterator), mv, alpha=self.alpha)
+                        block, next(message_iterator), mv, alpha=self.alpha
+                    )
             except StopIteration:
                 break
         return blocker.stack(blocks)
@@ -109,14 +109,18 @@ class RobustStegoCoder:
         msg_iterator = iter(encode_message(message, 128))
 
         new_coefficients = []
-        for level, mvs in zip(levels[1:self.levels_to_encode + 1], all_mvs[1:self.levels_to_encode + 1]):
+        for level, mvs in zip(
+            levels[1 : self.levels_to_encode + 1],
+            all_mvs[1 : self.levels_to_encode + 1],
+        ):
             new_coefficients.append(
                 tuple(
-                    self.encode_band(band, msg_iterator, mv) for band, mv in zip(level, mvs)
+                    self.encode_band(band, msg_iterator, mv)
+                    for band, mv in zip(level, mvs)
                 )
             )
 
-        self.transform.coefficients[1:self.levels_to_encode + 1] = new_coefficients
+        self.transform.coefficients[1 : self.levels_to_encode + 1] = new_coefficients
 
         return self.transform.inverse()
 
@@ -125,7 +129,7 @@ class RobustStegoCoder:
 
         extracted_data = []
 
-        for level in self.transform.coefficients[1:self.levels_to_encode + 1]:
+        for level in self.transform.coefficients[1 : self.levels_to_encode + 1]:
             for band in level:
                 extracted_data += self.decode_band(band)
 
@@ -139,7 +143,6 @@ class RobustStegoCoder:
         return cv2.merge(color_bands)
 
     def decode_color_image(self, img):
-
         metadata = self.decode_color_image_verbose(img)
 
         logging.info(f"R{metadata[0]},B{metadata[1]},G{metadata[2]}")
@@ -148,7 +151,7 @@ class RobustStegoCoder:
         for m, _, _ in metadata:
             msgs.append(m)
 
-        return find_original_string(msgs).decode('ascii')
+        return find_original_string(msgs).decode("ascii")
 
     def decode_color_image_verbose(self, img):
         channel_messages = []
@@ -156,7 +159,7 @@ class RobustStegoCoder:
         for color in cv2.split(img):
             extracted_data = []
             self.transform.forward(color)
-            for level in self.transform.coefficients[1:self.levels_to_encode + 1]:
+            for level in self.transform.coefficients[1 : self.levels_to_encode + 1]:
                 for band in level:
                     extracted_data += self.decode_band(band)
 

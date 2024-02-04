@@ -1,13 +1,10 @@
-from array import array
-from typing import Tuple, List, Any
-
 import cv2
 import numpy as np
 from reedsolo import ReedSolomonError
 
+from stego.core import blocking
 from stego.core import coder
 from stego.core import message as msg_utils
-from stego.core import blocking
 
 color_spaces = {
     "RGB": None,
@@ -34,7 +31,7 @@ def encode_color_image(
         use_channels: list[int],
         ecc_symbols: int,
         **kwargs,
-) -> (np.ndarray, np.ndarray, list):
+) -> (np.ndarray, np.ndarray, list[bytearray]):
     """Encodes a message into a color image."""
     parameters = {
         "coefficients": coefficients,
@@ -76,7 +73,7 @@ def decode_color_image(
         use_channels: list[int],
         ecc_symbols: int,
         **kwargs,
-) -> (Any, list[Any]):
+) -> (bytearray, list[bytes]):
     """Decodes a message from a color image."""
     parameters = {
         "coefficients": coefficients,

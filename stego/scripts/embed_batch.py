@@ -23,23 +23,35 @@ def resize_image_with_aspect_ratio(img, new_width: int):
     aspect_ratio = original_height / original_width
     new_height = int(new_width * aspect_ratio)
 
-    resized_image = cv2.resize(img, (new_width, new_height), interpolation=cv2.INTER_CUBIC)
+    resized_image = cv2.resize(
+        img, (new_width, new_height), interpolation=cv2.INTER_CUBIC
+    )
 
     return resized_image
 
 
 def embed(img, message, parameters):
     img_original = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    original, stego_image, msg_parts = multichannel_coder.encode_color_image(img_original,
-                                                                             message.encode("ASCII", errors="replace"),
-                                                                             **parameters)
+    original, stego_image, msg_parts = multichannel_coder.encode_color_image(
+        img_original, message.encode("ASCII", errors="replace"), **parameters
+    )
 
-    return cv2.cvtColor(original, cv2.COLOR_RGB2BGR), cv2.cvtColor(stego_image, cv2.COLOR_RGB2BGR), msg_parts
+    return (
+        cv2.cvtColor(original, cv2.COLOR_RGB2BGR),
+        cv2.cvtColor(stego_image, cv2.COLOR_RGB2BGR),
+        msg_parts,
+    )
 
 
 def save_data_to_csv(data: list[dict], filename: str):
-    with open(filename, 'w', encoding='utf-8', newline='') as file:
-        writer = csv.DictWriter(file, fieldnames=data[0].keys(), extrasaction='ignore', delimiter=";", dialect='excel')
+    with open(filename, "w", encoding="utf-8", newline="") as file:
+        writer = csv.DictWriter(
+            file,
+            fieldnames=data[0].keys(),
+            extrasaction="ignore",
+            delimiter=";",
+            dialect="excel",
+        )
         writer.writeheader()
         for row in data:
             writer.writerow(row)
@@ -49,14 +61,15 @@ def save_data_to_csv(data: list[dict], filename: str):
 
 def decode(img, parameters):
     message, message_parts = multichannel_coder.decode_color_image(img, **parameters)
-    if message is not None: message = message.decode("ASCII", errors="replace")
+    if message is not None:
+        message = message.decode("ASCII", errors="replace")
 
     return message, message_parts
 
 
 def compress_image(image, quality):
     encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), quality]
-    result, encimg = cv2.imencode('.jpg', image, encode_param)
+    result, encimg = cv2.imencode(".jpg", image, encode_param)
     if not result:
         raise Exception("Could not compress image")
     image = cv2.imdecode(encimg, 1)
@@ -80,13 +93,10 @@ def embed_batch():
         print(file_name)
         img_path = img_dir_path + file_name
         img = cv2.imread(str(img_path), cv2.IMREAD_COLOR)
-        # img = resize_image_with_aspect_ratio(img, 1440)
+        # img = resize_image_with_aspect_ratio(img, 2048)
         original, stego_image, msg_parts = embed(img, SECRET, encoder_config)
 
-        file_meta = {
-            "file_name_old": file_name,
-            "file_name_new": f"{i + 1}.jpg"
-        }
+        file_meta = {"file_name_old": file_name, "file_name_new": f"{i + 1}.jpg"}
 
         info = metrics.diff_metrics(original, stego_image)
 
@@ -96,8 +106,12 @@ def embed_batch():
         output_original_path = output_dir / "original" / file_meta["file_name_new"]
         output_stego_path = output_dir / "stego" / file_meta["file_name_new"]
 
-        cv2.imwrite(str(output_original_path), original, [int(cv2.IMWRITE_JPEG_QUALITY), 100])
-        cv2.imwrite(str(output_stego_path), stego_image, [int(cv2.IMWRITE_JPEG_QUALITY), 100])
+        cv2.imwrite(
+            str(output_original_path), original, [int(cv2.IMWRITE_JPEG_QUALITY), 100]
+        )
+        cv2.imwrite(
+            str(output_stego_path), stego_image, [int(cv2.IMWRITE_JPEG_QUALITY), 100]
+        )
 
     save_data_to_csv(measurements, str(output_dir / "metadata.csv"))
 
@@ -130,8 +144,8 @@ def decode_batch():
 
         result = {"file_name": file_name, "message": message}
 
-        # info = metrics.diff_metrics(stego_img, processed_img)
-        # result |= info
+        info = metrics.diff_metrics(stego_img, processed_img)
+        result |= info
 
         results.append(result)
 
@@ -148,7 +162,7 @@ def calculate_accuracy(payload1, payload2):
         arr_original = np.frombuffer(p_original, dtype=np.uint8)
         arr_retrieved = np.frombuffer(p_retrieved, dtype=np.uint8)
 
-        arr_retrieved = arr_retrieved[:arr_original.size]
+        arr_retrieved = arr_retrieved[: arr_original.size]
 
         # Convert bytes to bits
         arr_original_bits = np.unpackbits(arr_original)
@@ -199,16 +213,15 @@ def main():
 
     args = []
 
-    for ecc_symbols, level, block_size, use_channels, file_name in itertools.product([0, 5, 10, 15],
-                                                                                     [3, 4, 5],
-                                                                                     [3, 5],
-                                                                                     [[0], [1], [2], [1, 2]],
-                                                                                     file_names):
-        custom_config = {"ecc_symbols": ecc_symbols,
-                         "level": level,
-                         "block_size": block_size,
-                         "use_channels": use_channels,
-                         }
+    for ecc_symbols, level, block_size, use_channels, file_name in itertools.product(
+        [0, 5, 10, 15], [3, 4, 5], [3, 5], [[0], [1], [2], [1, 2]], file_names
+    ):
+        custom_config = {
+            "ecc_symbols": ecc_symbols,
+            "level": level,
+            "block_size": block_size,
+            "use_channels": use_channels,
+        }
 
         parameters = encoder_config.copy()
         parameters |= custom_config
@@ -223,13 +236,13 @@ def main():
     #     parameters |= custom_config
     #     args.append([parameters, img_dir_path, file_name])
 
-    results = pqdm(args, encode_compress_decode, n_jobs=7, argument_type='args')
+    results = pqdm(args, encode_compress_decode, n_jobs=7, argument_type="args")
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     save_data_to_csv(results, str(output_dir / f"encode_modify_decode_{timestamp}.csv"))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     start_time = time()
     main()
     end_time = time()
