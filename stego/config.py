@@ -5,7 +5,7 @@ with open('config.toml', 'rb') as f:
     config = tomllib.load(f)
 
 
-def get_encoder_config():
+def get_encoder_config() -> dict:
     return config['encoder']
 
 

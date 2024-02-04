@@ -22,16 +22,18 @@ color_spaces = {
 
 
 def encode_color_image(
-    image: np.ndarray,
-    message: bytes,
-    *,
-    coefficients: list[str],
-    alpha: float = 1,
-    block_size: int = 3,
-    level: int = 2,
-    wavelet: str = "haar",
-    color_space: str,
-    use_channels: list[int],
+        image: np.ndarray,
+        message: bytes,
+        *,
+        coefficients: list[str],
+        alpha: float = 1,
+        block_size: int = 3,
+        level: int = 2,
+        wavelet: str = "haar",
+        color_space: str,
+        use_channels: list[int],
+        ecc_symbols: int,
+        **kwargs,
 ) -> (np.ndarray, np.ndarray, list):
     """Encodes a message into a color image."""
     parameters = {
@@ -40,9 +42,10 @@ def encode_color_image(
         "block_size": block_size,
         "level": level,
         "wavelet": wavelet,
+        "ecc_symbols": ecc_symbols,
     }
 
-    ecc_message = msg_utils.encode_ecc(message)
+    ecc_message = msg_utils.encode_ecc(message, **parameters)
 
     image, _ = blocking.crop_image_to_divisible(image, block_size * 2 ** level)
 
@@ -52,7 +55,6 @@ def encode_color_image(
             cv2.cvtColor(image, color_spaces.get(color_space, cv2.COLOR_RGB2YCrCb))
         )
     )
-
 
     for channel_index in use_channels:
         channel = channels[channel_index]
@@ -64,15 +66,16 @@ def encode_color_image(
 
 
 def decode_color_image(
-    image: np.ndarray,
-    *,
-    coefficients: list[str],
-    block_size: int = 3,
-    level: int = 2,
-    wavelet: str = "haar",
-    color_space: str,
-    use_channels: list[int],
-    **kwargs,
+        image: np.ndarray,
+        *,
+        coefficients: list[str],
+        block_size: int = 3,
+        level: int = 2,
+        wavelet: str = "haar",
+        color_space: str,
+        use_channels: list[int],
+        ecc_symbols: int,
+        **kwargs,
 ) -> (Any, list[Any]):
     """Decodes a message from a color image."""
     parameters = {
@@ -80,6 +83,7 @@ def decode_color_image(
         "block_size": block_size,
         "level": level,
         "wavelet": wavelet,
+        "ecc_symbols": ecc_symbols,
     }
 
     channels = cv2.split(
@@ -91,9 +95,11 @@ def decode_color_image(
         message_parts += coder.decode(channels[channel_index], **parameters)
 
     message = coder.message_consolidator(image, message_parts, **parameters)
-    ecc_message = msg_utils.extract_repeating_fragment(message)
+    ecc_message = msg_utils.find_original_string(message)
     try:
-        message, message_ecc, _ = msg_utils.decode_ecc(ecc_message)
+        message, message_ecc, _ = msg_utils.decode_ecc(ecc_message, **parameters)
+        if not message:
+            message = message_ecc
     except ReedSolomonError:
         message = None
     return message, message_parts

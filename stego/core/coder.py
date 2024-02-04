@@ -40,6 +40,7 @@ def encode(
         block_size: int = 3,
         level: int = 2,
         wavelet: str = "haar",
+        **kwargs,
 ) -> np.ndarray:
     bit_step = 2 ** level
     decomposition = pywt.wavedecn(image, wavelet=wavelet, level=level)
