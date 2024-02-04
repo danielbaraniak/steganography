@@ -1,8 +1,15 @@
 import tomllib
 from collections import namedtuple
+from pathlib import Path
 
-with open("config.toml", "rb") as f:
-    config = tomllib.load(f)
+config_path = Path("config.toml")
+
+if config_path.exists():
+    with open(config_path, "rb") as f:
+        config = tomllib.load(f)
+else:
+    with open(Path(__file__).parent / "default_config.toml", "rb") as f:
+        config = tomllib.load(f)
 
 
 def get_encoder_config() -> dict:

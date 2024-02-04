@@ -8,13 +8,16 @@ color_space = "YCrCb"
 use_channels = [1, 2]
 ecc_symbols = 10
 
+[gui]
+zoom_in_factor = 1.25
+zoom_out_factor = 0.8
+scroll_step = 0.5
+image_formats = "Images (*.png *.jpg *.jpeg *.bmp)"
+
+
 [directories]
-images = "../../images/"
-output = "../../output/"
-
-
-#The images in this archive are part of the TESTIMAGES project: http://testimages.tecnick.com
-#Copyright (C) 2011-2014 Nicola Asuni - Tecnick.com LTD
+images = "images/"
+output = "output/"
 
 [images]
 image_files = [
