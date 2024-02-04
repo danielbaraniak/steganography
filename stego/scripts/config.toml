@@ -1,9 +1,11 @@
 [encoder]
 alpha = 1
 block_size = 3
-level = 2
+level = 4
 wavelet = "haar"
 coefficients = ["ad", "da", "dd"]
+color_space = "YCrCb"
+use_channels = [1, 2]
 
 [directories]
 images = "../../images/"
@@ -37,7 +39,7 @@ image_files = [
         # "img_2448x2448_3x8bit_SRC_RGB_guitar_fret.png",
          "img_2448x2448_3x8bit_SRC_RGB_guitar_head.png",
         # "img_2448x2448_3x8bit_SRC_RGB_keyboard_a.png",
-         "img_2448x2448_3x8bit_SRC_RGB_keyboard_b.png",
+#         "img_2448x2448_3x8bit_SRC_RGB_keyboard_b.png",
         # "img_2448x2448_3x8bit_SRC_RGB_lion.png",
         # "img_2448x2448_3x8bit_SRC_RGB_multimeter.png",
         # "img_2448x2448_3x8bit_SRC_RGB_pencils_a.png",
@@ -45,7 +47,7 @@ image_files = [
         # "img_2448x2448_3x8bit_SRC_RGB_pillar.png",
         # "img_2448x2448_3x8bit_SRC_RGB_plastic.png",
         # "img_2448x2448_3x8bit_SRC_RGB_roof.png",
-         "img_2448x2448_3x8bit_SRC_RGB_scarf.png",
+#         "img_2448x2448_3x8bit_SRC_RGB_scarf.png",
         # "img_2448x2448_3x8bit_SRC_RGB_screws.png",
         # "img_2448x2448_3x8bit_SRC_RGB_snails.png",
         # "img_2448x2448_3x8bit_SRC_RGB_socks.png",

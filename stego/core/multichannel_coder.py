@@ -1,5 +1,9 @@
+from array import array
+from typing import Tuple, List, Any
+
 import cv2
 import numpy as np
+from reedsolo import ReedSolomonError
 
 from stego.core import coder
 from stego.core import message as msg_utils
@@ -28,7 +32,7 @@ def encode_color_image(
     wavelet: str = "haar",
     color_space: str,
     use_channels: list[int],
-) -> np.ndarray:
+) -> (np.ndarray, np.ndarray, list):
     """Encodes a message into a color image."""
     parameters = {
         "coefficients": coefficients,
@@ -38,14 +42,17 @@ def encode_color_image(
         "wavelet": wavelet,
     }
 
+    ecc_message = msg_utils.encode_ecc(message)
+
     image, _ = blocking.crop_image_to_divisible(image, block_size * 2 ** level)
 
-    message_parts = coder.uniform_message_dispatcher(image, message, **parameters)
+    message_parts = coder.uniform_message_dispatcher(image, ecc_message, **parameters)
     channels = list(
         cv2.split(
             cv2.cvtColor(image, color_spaces.get(color_space, cv2.COLOR_RGB2YCrCb))
         )
     )
+
 
     for channel_index in use_channels:
         channel = channels[channel_index]
@@ -53,7 +60,7 @@ def encode_color_image(
         channels[channel_index] = encoded_channel
 
     stego = cv2.cvtColor(cv2.merge(channels), cv2.COLOR_YCrCb2RGB)
-    return stego
+    return image, stego, message_parts
 
 
 def decode_color_image(
@@ -66,7 +73,7 @@ def decode_color_image(
     color_space: str,
     use_channels: list[int],
     **kwargs,
-) -> bytes:
+) -> (Any, list[Any]):
     """Decodes a message from a color image."""
     parameters = {
         "coefficients": coefficients,
@@ -82,5 +89,11 @@ def decode_color_image(
     message_parts = []
     for channel_index in use_channels:
         message_parts += coder.decode(channels[channel_index], **parameters)
+
     message = coder.message_consolidator(image, message_parts, **parameters)
-    return msg_utils.extract_repeating_fragment(message)
+    ecc_message = msg_utils.extract_repeating_fragment(message)
+    try:
+        message, message_ecc, _ = msg_utils.decode_ecc(ecc_message)
+    except ReedSolomonError:
+        message = None
+    return message, message_parts

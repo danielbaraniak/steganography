@@ -100,8 +100,9 @@ class EncoderWidget(QWidget):
             QMessageBox.critical(self, "Error", "No image loaded.")
             return
 
-        stego_image = self.create_stego_image()
+        original, stego_image, _ = self.create_stego_image()
 
+        self.model.set_image(original, self.model.path)
         self.model.set_stego_image(stego_image)
         self.comparison_window.set_original_image(self.model.image)
         self.comparison_window.set_modified_image(self.model.stego_image)

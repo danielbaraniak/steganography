@@ -50,6 +50,6 @@ class DecoderWidget(QWidget):
     def get_decoded_message(self):
         default_parameters = config.get_encoder_config()
 
-        decoded_message_bytes = decode_color_image(self.model.image, **default_parameters)
+        decoded_message_bytes, _ = decode_color_image(self.model.image, **default_parameters)
 
         return decoded_message_bytes.decode("ASCII", errors="replace")
