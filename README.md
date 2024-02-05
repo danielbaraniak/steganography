@@ -27,7 +27,7 @@ It's recommended to use a virtual environment for Python projects to manage depe
    ```
 3. Create a virtual environment named `venv` (or any other name you prefer):
    ```sh
-   python3.11 -m venv venv
+   python -m venv venv
    ```
 4. Activate the virtual environment:
    - On Windows:
@@ -44,7 +44,7 @@ It's recommended to use a virtual environment for Python projects to manage depe
 After setting up and activating the virtual environment, install the project dependencies by running:
 
 ```sh
-pip install -r requirements.txt
+python -m pip install -r requirements.txt
 ```
 
 This command reads the `requirements.txt` file in your project directory and installs all the required Python packages listed there.
