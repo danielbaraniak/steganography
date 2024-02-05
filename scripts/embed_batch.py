@@ -195,6 +195,7 @@ def encode_compress_decode(encoder_config, img_dir_path, file_name):
         message, message_parts_decoded = decode(compressed_image, encoder_config)
         correct_bits = calculate_accuracy(msg_parts, message_parts_decoded)
         decoded_results[f"{quality}_correct_bits"] = correct_bits
+        decoded_results[f"{quality}_message"] = message
         decoded_results[f"{quality}_is_success"] = message == SECRET
         decoded_results[f"{quality}_is_false_positive"] = (
             message is not None and message != SECRET
