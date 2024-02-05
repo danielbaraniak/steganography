@@ -59,6 +59,6 @@ image_files = [
 #    "img_2448x2448_3x8bit_SRC_RGB_tomatoes_a.png",
 #    "img_2448x2448_3x8bit_SRC_RGB_tomatoes_b.png",
 #    "img_2448x2448_3x8bit_SRC_RGB_tools_a.png",
-#    "img_2448x2448_3x8bit_SRC_RGB_tools_b.png",
+    "img_2448x2448_3x8bit_SRC_RGB_tools_b.png",
 #    "img_2448x2448_3x8bit_SRC_RGB_wood_game.png",
 ]

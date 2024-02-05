@@ -227,10 +227,11 @@ def main():
         parameters |= custom_config
         args.append([parameters, img_dir_path, file_name])
 
-    # for ecc_symbols, level, file_name in itertools.product([0, 5],  [3, 4],file_names):
-    #     custom_config = {"ecc_symbols": ecc_symbols,
-    #                      "level": level,
-    #                      }
+    # for ecc_symbols, level, file_name in itertools.product([0, 5], [3, 4], file_names):
+    #     custom_config = {
+    #         "ecc_symbols": ecc_symbols,
+    #         "level": level,
+    #     }
     #
     #     parameters = encoder_config.copy()
     #     parameters |= custom_config
