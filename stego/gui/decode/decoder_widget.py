@@ -58,8 +58,13 @@ class DecoderWidget(QWidget):
     def get_decoded_message(self):
         default_parameters = config.get_encoder_config()
 
-        decoded_message_bytes, _ = decode_color_image(
+        decoded_message_bytes, ecc_message, _ = decode_color_image(
             self.model.image, **default_parameters
         )
 
-        return decoded_message_bytes.decode("ASCII", errors="replace")
+        if not decoded_message_bytes:
+            return "No message found. Closest result: " + ecc_message.decode(
+                "ASCII", errors="replace"
+            )
+        else:
+            return decoded_message_bytes.decode("ASCII", errors="replace")

@@ -28,6 +28,7 @@ color_spaces_inversed = {
     "XYZ": cv2.COLOR_XYZ2RGB,
 }
 
+
 def rgb_to_color_space(image: np.ndarray, color_space: str) -> np.ndarray:
     """Converts an image to a different color space."""
     if color_space == "RGB":
@@ -41,7 +42,9 @@ def color_space_to_rgb(image: np.ndarray, color_space: str) -> np.ndarray:
     if color_space == "RGB":
         return image
     else:
-        return cv2.cvtColor(image, color_spaces_inversed.get(color_space, cv2.COLOR_YCrCb2RGB))
+        return cv2.cvtColor(
+            image, color_spaces_inversed.get(color_space, cv2.COLOR_YCrCb2RGB)
+        )
 
 
 def encode_color_image(
@@ -95,7 +98,7 @@ def decode_color_image(
     use_channels: list[int],
     ecc_symbols: int,
     **kwargs,
-) -> (bytearray, list[bytes]):
+) -> (bytearray | None, bytes, list[bytes]):
     """Decodes a message from a color image."""
     parameters = {
         "coefficients": coefficients,
@@ -119,4 +122,4 @@ def decode_color_image(
             message = message_ecc
     except ReedSolomonError:
         message = None
-    return message, message_parts
+    return message, ecc_message, message_parts

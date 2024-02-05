@@ -60,7 +60,9 @@ def save_data_to_csv(data: list[dict], filename: str):
 
 
 def decode(img, parameters):
-    message, message_parts = multichannel_coder.decode_color_image(img, **parameters)
+    message, ecc_message, message_parts = multichannel_coder.decode_color_image(
+        img, **parameters
+    )
     if message is not None:
         message = message.decode("ASCII", errors="replace")
 
@@ -194,6 +196,9 @@ def encode_compress_decode(encoder_config, img_dir_path, file_name):
         correct_bits = calculate_accuracy(msg_parts, message_parts_decoded)
         decoded_results[f"{quality}_correct_bits"] = correct_bits
         decoded_results[f"{quality}_is_success"] = message == SECRET
+        decoded_results[f"{quality}_is_false_positive"] = (
+            message is not None and message != SECRET
+        )
 
     info |= metrics.diff_metrics(original, stego_image)
 
