@@ -84,16 +84,19 @@ python launch.py
 
 ### Testing the Application
 
-> To facilitate imports from the `stego` when testing the project, you'll need to add it to your `PYTHONPATH`. Look at the section [Setting PYTHONPATH for the Project](#setting-pythonpath-for-the-project) for instructions on how to do that.
+> To facilitate imports from the `stego` when testing the project,
+> you'll need to add it to your `PYTHONPATH`. 
+> Look at the section [Setting PYTHONPATH for the Project](#setting-pythonpath-for-the-project) 
+> for instructions on how to do that.
 
-In the `scripts` directory, you can find scripts for batch testing the watermarking and decoding functionality. To run the test, execute a file from the script's directory:
-
-You may want to configure the input and output directories, as well as other parameters, in the config or in the script file.
+In the `scripts` directory, you can find scripts for batch testing the watermarking and decoding functionality. 
+To run the test, execute a file from the script's directory:
 
 ```sh
-python -m scripts.embed_batch
+python ./embed_batch.py
 ```
 
+You may want to configure the input and output directories, as well as other parameters, in the config or in the script file.
 
 #### Setting PYTHONPATH for the Project
 
@@ -106,7 +109,6 @@ Execute the commands below from the root directory of the project:
 export PYTHONPATH=$(pwd):$PYTHONPATH
 ```
 
-
 ##### Windows Command Prompt
 
 ```cmd
@@ -118,4 +120,3 @@ set PYTHONPATH=%CD%;%PYTHONPATH%
 ```powershell
 $env:PYTHONPATH = "$(Get-Location);$env:PYTHONPATH"
 ```
-
