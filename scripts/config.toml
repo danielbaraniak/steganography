@@ -26,7 +26,7 @@ image_files = [
     "img_2448x2448_3x8bit_SRC_RGB_baloons.png",
 #    "img_2448x2448_3x8bit_SRC_RGB_bananas.png",
 #    "img_2448x2448_3x8bit_SRC_RGB_billiard_balls_a.png",
-#    "img_2448x2448_3x8bit_SRC_RGB_billiard_balls_b.png",
+    "img_2448x2448_3x8bit_SRC_RGB_billiard_balls_b.png",
 #    "img_2448x2448_3x8bit_SRC_RGB_building.png",
 #    "img_2448x2448_3x8bit_SRC_RGB_cards_a.png",
     "img_2448x2448_3x8bit_SRC_RGB_cards_b.png",
