@@ -1,7 +1,7 @@
 [encoder]
 alpha = 1
 block_size = 3
-level = 2
+level = 4
 wavelet = "haar"
 coefficients = ["ad", "da", "dd"]
 color_space = "YCrCb"
