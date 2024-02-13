@@ -1,6 +1,5 @@
 import numpy as np
 import pywt
-from numpy import ndarray
 
 import stego.core.message as msg_utils
 import stego.core.blocking as blocking
@@ -11,13 +10,15 @@ BYTE = 8
 
 
 def modify_blocks(
-    message: bytes, blocks: list[np.ndarray], bit_step: int, alpha: float
-) -> list[ndarray]:
-    message_bin = msg_utils.bytes_to_binary(message)
-    for message_bit, block in zip(message_bin, blocks):
-        mean = np.mean(block)
-        mv = message_bit * bit_step * 2 - bit_step
-        block[1, 1] = mean + alpha * mv
+        message: bytes, blocks: list[np.ndarray], bit_step: int, alpha: float
+) -> np.ndarray:
+    message_bin: np.ndarray = msg_utils.bytes_to_binary(message).astype(int)
+    center_index = (blocks[0].shape[0] - 1) // 2, (blocks[0].shape[1] - 1) // 2
+    blocks = np.array(blocks)
+    mv = message_bin * bit_step * 2 - bit_step
+    mean_values = np.nanmean(blocks, axis=(1, 2))[:message_bin.size]
+    blocks[:message_bin.size, center_index[0], center_index[1]] = mean_values + alpha * mv
+
     return blocks
 
 
@@ -32,17 +33,17 @@ def decode_blocks(blocks: list[np.ndarray]) -> bytes:
 
 
 def encode(
-    image: np.ndarray,
-    message_parts: list[bytes],
-    *,
-    coefficients: list[str],
-    alpha: float = 1,
-    block_size: int = 3,
-    level: int = 2,
-    wavelet: str = "haar",
-    **kwargs,
+        image: np.ndarray,
+        message_parts: list[bytes],
+        *,
+        coefficients: list[str],
+        alpha: float = 1,
+        block_size: int = 3,
+        level: int = 2,
+        wavelet: str = "haar",
+        **kwargs,
 ) -> np.ndarray:
-    bit_step = 2**level
+    bit_step = 2 ** level
     decomposition = pywt.wavedecn(image, wavelet=wavelet, level=level)
     for coefficient, message in zip(coefficients, message_parts):
         cover = decomposition[1][coefficient]
@@ -58,13 +59,13 @@ def encode(
 
 
 def decode(
-    image: np.ndarray,
-    *,
-    coefficients: list[str],
-    block_size: int = 3,
-    level: int = 2,
-    wavelet: str = "haar",
-    **kwargs,
+        image: np.ndarray,
+        *,
+        coefficients: list[str],
+        block_size: int = 3,
+        level: int = 2,
+        wavelet: str = "haar",
+        **kwargs,
 ) -> list[bytes]:
     decomposition = pywt.wavedecn(image, wavelet=wavelet, level=level)
     message_parts = []
@@ -78,31 +79,31 @@ def decode(
 
 
 def get_capacity(
-    image: np.ndarray,
-    *,
-    coefficients: list[str],
-    block_size: int = 3,
-    level: int = 2,
-    **kwargs,
+        image: np.ndarray,
+        *,
+        coefficients: list[str],
+        block_size: int = 3,
+        level: int = 2,
+        **kwargs,
 ) -> tuple[int, int]:
     """Calculates the capacity of the image in bytes."""
-    initial_block_size = block_size * 2**level
+    initial_block_size = block_size * 2 ** level
     height, width = image.shape[:2]
     coefficient_capacity = (
-        height // initial_block_size * width // initial_block_size
-    ) // BYTE
+                                   height // initial_block_size * width // initial_block_size
+                           ) // BYTE
     image_capacity = coefficient_capacity * len(coefficients)
     return image_capacity, coefficient_capacity
 
 
 def message_dispatcher(
-    image: np.ndarray,
-    message: bytes,
-    *,
-    coefficients: list[str],
-    block_size: int = 3,
-    level: int = 2,
-    **kwargs,
+        image: np.ndarray,
+        message: bytes,
+        *,
+        coefficients: list[str],
+        block_size: int = 3,
+        level: int = 2,
+        **kwargs,
 ):
     """Divides the message into parts that fit into coefficients of the image."""
     image_capacity, coefficient_capacity = get_capacity(
@@ -119,7 +120,7 @@ def message_dispatcher(
     fits, remainder = divmod(coefficient_capacity, len(message))
     new_message = message * fits
     message_parts = [
-        new_message[i : i + coefficient_capacity]
+        new_message[i: i + coefficient_capacity]
         for i in range(0, len(new_message), coefficient_capacity)
     ]
     logging.debug(f"Message parts: {message_parts}")
@@ -128,13 +129,13 @@ def message_dispatcher(
 
 
 def uniform_message_dispatcher(
-    image: np.ndarray,
-    message: bytes,
-    *,
-    coefficients: list[str],
-    block_size: int = 3,
-    level: int = 2,
-    **kwargs,
+        image: np.ndarray,
+        message: bytes,
+        *,
+        coefficients: list[str],
+        block_size: int = 3,
+        level: int = 2,
+        **kwargs,
 ):
     """Create identical parts that fit into coefficients of the image."""
     image_capacity, coefficient_capacity = get_capacity(
@@ -156,13 +157,13 @@ def uniform_message_dispatcher(
 
 
 def message_consolidator(
-    image: np.ndarray,
-    message_parts: list[bytes],
-    *,
-    coefficients: list[str],
-    block_size: int = 3,
-    level: int = 2,
-    **kwargs,
+        image: np.ndarray,
+        message_parts: list[bytes],
+        *,
+        coefficients: list[str],
+        block_size: int = 3,
+        level: int = 2,
+        **kwargs,
 ) -> bytes:
     """Consolidates the messages extracted from coefficients."""
     image_capacity, coefficient_capacity = get_capacity(
