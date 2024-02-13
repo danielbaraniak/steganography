@@ -5,11 +5,10 @@ import cv2
 import matplotlib.pyplot as plt
 import numpy as np
 import pywt
+from pqdm.processes import pqdm
 
 from stego import config
 from stego.core import metrics
-from joblib import Parallel, delayed
-from tqdm import tqdm
 
 
 # Image Processing Functions
@@ -181,23 +180,20 @@ if __name__ == "__main__":
         cv2.COLOR_BGR2HSV: ("H", "S", "V"),
     }
 
-    n_jobs = -1
     color_spaces = [cv2.COLOR_BGR2YCrCb, cv2.COLOR_BGR2RGB, cv2.COLOR_BGR2HSV]
-    total_tasks = len(img_paths) * len(color_spaces)
 
-    Parallel(n_jobs=n_jobs, verbose=10)(
-        delayed(create_graph)(
-            image_path,
-            output_dir,
-            conversion,
-            {
-                "qualities": range(50, 100, 15),
-                "max_level": 6,
-                "wavelet": "haar",
-                "metric": metrics.thresholds,
-                "channels": conversions[conversion],
-            },
-        )
-        for image_path in tqdm(img_paths, total=total_tasks)
+    args = [
+        (image_path, output_dir, conversion, {
+            "qualities": range(50, 100, 15),
+            "max_level": 6,
+            "wavelet": "haar",
+            "metric": metrics.thresholds,
+            "channels": conversions[conversion],
+        })
+        for image_path in img_paths
         for conversion in color_spaces
-    )
+    ]
+
+    n_jobs = 6
+
+    results = pqdm(args, create_graph, n_jobs=n_jobs, argument_type="args")

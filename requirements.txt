@@ -6,7 +6,5 @@ reedsolo~=1.7.0
 scikit-image~=0.21.0
 matplotlib~=3.7.2
 PyWavelets~=1.4.1
-joblib~=1.3.2
-tqdm~=4.66.1
 scipy~=1.11.2
 pqdm~=0.2.0
