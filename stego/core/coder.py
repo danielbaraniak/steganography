@@ -1,6 +1,5 @@
 import numpy as np
 import pywt
-from numpy import ndarray
 
 import stego.core.message as msg_utils
 import stego.core.blocking as blocking
@@ -12,23 +11,30 @@ BYTE = 8
 
 def modify_blocks(
     message: bytes, blocks: list[np.ndarray], bit_step: int, alpha: float
-) -> list[ndarray]:
-    message_bin = msg_utils.bytes_to_binary(message)
-    for message_bit, block in zip(message_bin, blocks):
-        mean = np.mean(block)
-        mv = message_bit * bit_step * 2 - bit_step
-        block[1, 1] = mean + alpha * mv
+) -> np.ndarray:
+    message_bin: np.ndarray = msg_utils.bytes_to_binary(message).astype(int)
+    blocks = np.array(blocks)
+    center_index = blocks.shape[1] // 2, blocks.shape[2] // 2
+    mv = message_bin * bit_step * 2 - bit_step
+    mean_values = np.nanmean(blocks, axis=(1, 2))[: message_bin.size]
+    blocks[: message_bin.size, *center_index] = mean_values + alpha * mv
+
     return blocks
 
 
 def decode_blocks(blocks: list[np.ndarray]) -> bytes:
-    message_bin = []
-    for block in blocks:
-        mean = np.mean(block)
-        mv = block[1, 1] - mean
-        bit = 1 if mv > 0 else 0
-        message_bin.append(bit)
-    return msg_utils.binary_to_bytes(message_bin)
+    blocks = np.array(blocks)
+    center_index = blocks.shape[1] // 2, blocks.shape[2] // 2
+
+    center_values = blocks[:, *center_index].copy()
+    blocks[:, *center_index] = np.nan
+    mean_values = np.nanmean(blocks, axis=(1, 2))
+
+    differences = center_values - mean_values
+    inferred_bits = differences > 0
+
+    message = msg_utils.binary_to_bytes(inferred_bits)
+    return message
 
 
 def encode(
