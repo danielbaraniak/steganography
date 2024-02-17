@@ -44,7 +44,10 @@ def save_data_to_csv(data: list[dict], filename: str):
         )
         writer.writeheader()
         for row in data:
-            writer.writerow(row)
+            try:
+                writer.writerow(row)
+            except:
+                print(row)
 
     print(f"Content saved to {filename}")
 
@@ -69,11 +72,11 @@ def compress_image(image, quality):
 
 
 def calculate_accuracy(payload1: bytes, payload2: bytes):
-    matching_bits = 0
-    total_bits = 0
+    repeats, remainder = divmod(len(payload2), len(payload1))
+    if remainder > 0:
+        print("Payloads have different lengths")
 
-    repeats = len(payload2) // len(payload1)
-    payload1 = payload1 * repeats
+    payload1 = payload1 * repeats + payload1[:remainder]
 
     arr_original = np.frombuffer(payload1, dtype=np.uint8)
     arr_retrieved = np.frombuffer(payload2, dtype=np.uint8)
