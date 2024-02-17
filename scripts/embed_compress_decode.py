@@ -72,39 +72,6 @@ def main():
 
     args = []
 
-    # for (
-    #     alpha,
-    #     ecc_symbols,
-    #     level,
-    #     block_size,
-    #     color_space,
-    #     use_channels,
-    #     coefficients,
-    #     file_name,
-    # ) in itertools.product(
-    #     [1, 2],
-    #     [1, 5, 12],
-    #     [3, 4, 5],
-    #     [3, 5],
-    #     ["RGB", "YCrCb"],
-    #     [[0], [1], [2], [0, 1, 2]],
-    #     [["ad"], ["da"], ["dd"]],
-    #     file_names,
-    # ):
-    #     custom_config = {
-    #         "alpha": alpha,
-    #         "ecc_symbols": ecc_symbols,
-    #         "level": level,
-    #         "block_size": block_size,
-    #         "use_channels": use_channels,
-    #         "color_space": color_space,
-    #         "coefficients": coefficients,
-    #     }
-    #
-    #     parameters = encoder_config.copy()
-    #     parameters |= custom_config
-    #     args.append([parameters, img_dir_path, file_name])
-
     for (
         alpha,
         ecc_symbols,
@@ -115,7 +82,14 @@ def main():
         coefficients,
         file_name,
     ) in itertools.product(
-        [2], [6], [5], [3], ["YCrCb"], [[0]], [["da", "ad", "dd"]], file_names[3:6]
+        [1, 2],
+        [1, 14, 28],
+        [3, 4, 5],
+        [3, 5],
+        ["RGB", "YCrCb"],
+        [[0], [1], [2], [0, 1, 2]],
+        [["ad", "da", "dd"], ["ad", "da"]],
+        file_names,
     ):
         custom_config = {
             "alpha": alpha,
@@ -126,12 +100,38 @@ def main():
             "color_space": color_space,
             "coefficients": coefficients,
         }
-
+    
         parameters = encoder_config.copy()
         parameters |= custom_config
         args.append([parameters, img_dir_path, file_name])
 
-    results = pqdm(args, encode_compress_decode, n_jobs=1, argument_type="args")
+    # for (
+    #     alpha,
+    #     ecc_symbols,
+    #     level,
+    #     block_size,
+    #     color_space,
+    #     use_channels,
+    #     coefficients,
+    #     file_name,
+    # ) in itertools.product(
+    #     [1], [1], [5], [7], ["YCrCb"], [[0]], [["da", "ad"]], file_names[:6]
+    # ):
+    #     custom_config = {
+    #         "alpha": alpha,
+    #         "ecc_symbols": ecc_symbols,
+    #         "level": level,
+    #         "block_size": block_size,
+    #         "use_channels": use_channels,
+    #         "color_space": color_space,
+    #         "coefficients": coefficients,
+    #     }
+
+    #     parameters = encoder_config.copy()
+    #     parameters |= custom_config
+    #     args.append([parameters, img_dir_path, file_name])
+
+    results = pqdm(args, encode_compress_decode, n_jobs=6, argument_type="args")
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     utils.save_data_to_csv(
