@@ -122,7 +122,7 @@ def message_dispatcher(
             f"Message is too long for the image. Image capacity: {image_capacity}, message length: {len(message)}"
         )
 
-    fits, remainder = divmod(coefficient_capacity, len(message))
+    fits, remainder = divmod(image_capacity, len(message))
     new_message = message * fits
     message_parts = [
         new_message[i : i + coefficient_capacity]

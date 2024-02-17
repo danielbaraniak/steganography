@@ -30,7 +30,7 @@ def embed_batch(size):
         if size != img.shape[0]:
             img = utils.resize_image_with_aspect_ratio(img, size)
 
-        original, stego_image, msg_parts = utils.embed(img, SECRET, encoder_config)
+        original, stego_image, msg_raw = utils.embed(img, SECRET, encoder_config)
 
         for ext in ["jpg", "png"]:
 

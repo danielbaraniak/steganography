@@ -33,7 +33,7 @@ def decode_batch(size):
 
         # processed_img = utils.resize_image_with_aspect_ratio(processed_img, 2016)
 
-        message, ecc_message, message_parts = utils.decode(
+        message, ecc_message, message_raw = utils.decode(
             processed_img, encoder_config
         )
         print(message)

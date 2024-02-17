@@ -22,14 +22,14 @@ def resize_image_with_aspect_ratio(img, new_width: int):
 
 def embed(img, message, parameters):
     img_original = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    original, stego_image, msg_parts = multichannel_coder.encode_color_image(
+    original, stego_image, msg_raw = multichannel_coder.encode_color_image(
         img_original, message.encode("ASCII", errors="replace"), **parameters
     )
 
     return (
         cv2.cvtColor(original, cv2.COLOR_RGB2BGR),
         cv2.cvtColor(stego_image, cv2.COLOR_RGB2BGR),
-        msg_parts,
+        msg_raw,
     )
 
 
@@ -50,13 +50,13 @@ def save_data_to_csv(data: list[dict], filename: str):
 
 
 def decode(img, parameters):
-    message, ecc_message, message_parts = multichannel_coder.decode_color_image(
+    message, ecc_message, message_raw = multichannel_coder.decode_color_image(
         img, **parameters
     )
     if message is not None:
         message = message.decode("ASCII", errors="replace")
 
-    return message, ecc_message, message_parts
+    return message, ecc_message, message_raw
 
 
 def compress_image(image, quality):
@@ -68,24 +68,22 @@ def compress_image(image, quality):
     return image
 
 
-def calculate_accuracy(payload1, payload2):
+def calculate_accuracy(payload1: bytes, payload2: bytes):
     matching_bits = 0
     total_bits = 0
 
-    payload1 = itertools.cycle(payload1)
+    repeats = len(payload2) // len(payload1)
+    payload1 = payload1 * repeats
 
-    for p_original, p_retrieved in zip(payload1, payload2):
-        arr_original = np.frombuffer(p_original, dtype=np.uint8)
-        arr_retrieved = np.frombuffer(p_retrieved, dtype=np.uint8)
+    arr_original = np.frombuffer(payload1, dtype=np.uint8)
+    arr_retrieved = np.frombuffer(payload2, dtype=np.uint8)
 
-        arr_retrieved = arr_retrieved[: arr_original.size]
+    # Convert bytes to bits
+    arr_original_bits = np.unpackbits(arr_original)
+    arr_retrieved_bits = np.unpackbits(arr_retrieved)
 
-        # Convert bytes to bits
-        arr_original_bits = np.unpackbits(arr_original)
-        arr_retrieved_bits = np.unpackbits(arr_retrieved)
-
-        # Compare bits
-        matching_bits += np.sum(arr_original_bits == arr_retrieved_bits)
-        total_bits += arr_original_bits.size
+    # Compare bits
+    matching_bits = np.sum(arr_original_bits == arr_retrieved_bits)
+    total_bits = arr_original_bits.size
 
     return matching_bits / total_bits
