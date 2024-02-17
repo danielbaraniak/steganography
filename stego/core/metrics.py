@@ -26,14 +26,10 @@ def get_metrics(img1, img2):
 
 def diff_metrics(img1, img2):
     img1, img2 = match_sizes(img1, img2)
-    difference = img1 - img2
     is_grayscale = img1.ndim == 2
     data_range = max(np.max(img1), np.max(img2)) - min(np.min(img1), np.min(img2))
 
     diff = {
-        "min": np.min(difference),
-        "max": np.max(difference),
-        "abs_diff_mean": np.mean(np.abs(difference)),
         "psnr": metrics.peak_signal_noise_ratio(img1, img2, data_range=data_range),
         "ssim": metrics.structural_similarity(
             img1, img2, data_range=data_range, channel_axis=None if is_grayscale else 2

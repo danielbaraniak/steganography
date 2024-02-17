@@ -56,7 +56,7 @@ def decode(img, parameters):
     if message is not None:
         message = message.decode("ASCII", errors="replace")
 
-    return message, message_parts
+    return message, ecc_message, message_parts
 
 
 def compress_image(image, quality):
