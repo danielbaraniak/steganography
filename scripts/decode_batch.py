@@ -8,8 +8,8 @@ from stego import config
 from stego.core import metrics
 
 
-def decode_batch():
-    output_dir = Path(config.get_output_dir()) / "test"
+def decode_batch(size):
+    output_dir = Path(config.get_output_dir()) / "test" / f"{size}x{size}"
     output_dir.mkdir(parents=True, exist_ok=True)
 
     processed_dir_path = output_dir / "processed"
@@ -46,7 +46,7 @@ def decode_batch():
 
 if __name__ == "__main__":
     start_time = time()
-    decode_batch()
+    decode_batch(2448)
     end_time = time()
     elapsed_time = end_time - start_time
     print(f"Execution time: {elapsed_time:.2f} seconds")
