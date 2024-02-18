@@ -7,13 +7,12 @@ from scripts import utils
 from stego import config
 from stego.core import metrics
 
-SECRET = "Lorem ipsum dolor sit"
+SECRET = "Lorem ipsum dolor sit amet"
 
 
 def embed_batch(size):
-    output_dir = Path(config.get_output_dir()) / "test" / f"{size}x{size}"
+    output_dir = Path(config.get_output_dir()) / "test_platforms" / f"{size}x{size}"
     Path(output_dir).mkdir(parents=True, exist_ok=True)
-
 
     img_dir_path = config.get_images_dir()
     file_names = config.get_images_list()
@@ -33,8 +32,13 @@ def embed_batch(size):
         original, stego_image, msg_raw = utils.embed(img, SECRET, encoder_config)
 
         for ext in ["jpg", "png"]:
+            info = {
+                "file_name_old": file_name,
+                "file_name_new": f"{i + 1}.{ext}",
+                "size": stego_image.shape[0],
+            }
 
-            info = {"file_name_old": file_name, "file_name_new": f"{i + 1}.{ext}"}
+            info |= encoder_config
 
             info |= metrics.diff_metrics(original, stego_image)
 
@@ -48,10 +52,14 @@ def embed_batch(size):
 
             if ext == "jpg":
                 cv2.imwrite(
-                    str(output_original_path), original, [int(cv2.IMWRITE_JPEG_QUALITY), 100]
+                    str(output_original_path),
+                    original,
+                    [int(cv2.IMWRITE_JPEG_QUALITY), 100],
                 )
                 cv2.imwrite(
-                    str(output_stego_path), stego_image, [int(cv2.IMWRITE_JPEG_QUALITY), 100]
+                    str(output_stego_path),
+                    stego_image,
+                    [int(cv2.IMWRITE_JPEG_QUALITY), 100],
                 )
             else:
                 cv2.imwrite(str(output_original_path), original)

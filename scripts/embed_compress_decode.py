@@ -100,36 +100,10 @@ def main():
             "color_space": color_space,
             "coefficients": coefficients,
         }
-    
+
         parameters = encoder_config.copy()
         parameters |= custom_config
         args.append([parameters, img_dir_path, file_name])
-
-    # for (
-    #     alpha,
-    #     ecc_symbols,
-    #     level,
-    #     block_size,
-    #     color_space,
-    #     use_channels,
-    #     coefficients,
-    #     file_name,
-    # ) in itertools.product(
-    #     [1], [1], [5], [7], ["YCrCb"], [[0]], [["da", "ad"]], file_names[:6]
-    # ):
-    #     custom_config = {
-    #         "alpha": alpha,
-    #         "ecc_symbols": ecc_symbols,
-    #         "level": level,
-    #         "block_size": block_size,
-    #         "use_channels": use_channels,
-    #         "color_space": color_space,
-    #         "coefficients": coefficients,
-    #     }
-
-    #     parameters = encoder_config.copy()
-    #     parameters |= custom_config
-    #     args.append([parameters, img_dir_path, file_name])
 
     results = pqdm(args, encode_compress_decode, n_jobs=6, argument_type="args")
 

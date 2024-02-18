@@ -13,6 +13,9 @@ def resize_image_with_aspect_ratio(img, new_width: int):
     aspect_ratio = original_height / original_width
     new_height = int(new_width * aspect_ratio)
 
+    if original_width == new_width and original_height == new_height:
+        return img
+
     resized_image = cv2.resize(
         img, (new_width, new_height), interpolation=cv2.INTER_CUBIC
     )
