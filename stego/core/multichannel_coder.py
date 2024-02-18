@@ -60,7 +60,7 @@ def encode_color_image(
     use_channels: list[int],
     ecc_symbols: int,
     **kwargs,
-) -> (np.ndarray, np.ndarray, list[bytearray]):
+) -> (np.ndarray, np.ndarray, bytes):
     """Encodes a message into a color image."""
     parameters = {
         "coefficients": coefficients,
@@ -75,7 +75,7 @@ def encode_color_image(
 
     image, _ = blocking.crop_image_to_divisible(image, block_size * 2**level)
 
-    message_parts = coder.uniform_message_dispatcher(image, ecc_message, **parameters)
+    message_parts = coder.message_dispatcher(image, ecc_message, **parameters)
     channels = list(cv2.split(rgb_to_color_space(image, color_space)))
 
     for channel_index in use_channels:
@@ -84,7 +84,7 @@ def encode_color_image(
         channels[channel_index] = encoded_channel
 
     stego = color_space_to_rgb(cv2.merge(channels), color_space)
-    return image, stego, message_parts
+    return image, stego, b"".join(message_parts)
 
 
 def decode_color_image(
@@ -98,7 +98,7 @@ def decode_color_image(
     use_channels: list[int],
     ecc_symbols: int,
     **kwargs,
-) -> (bytearray | None, bytes, list[bytes]):
+) -> (bytearray | None, bytes, bytes):
     """Decodes a message from a color image."""
     parameters = {
         "coefficients": coefficients,
@@ -114,12 +114,12 @@ def decode_color_image(
     for channel_index in use_channels:
         message_parts += coder.decode(channels[channel_index], **parameters)
 
-    message = coder.message_consolidator(image, message_parts, **parameters)
-    ecc_message = msg_utils.find_original_string(message)
+    message_raw = coder.message_consolidator(image, message_parts, **parameters)
+    ecc_message = msg_utils.find_original_string(message_raw)
     try:
         message, message_ecc, _ = msg_utils.decode_ecc(ecc_message, **parameters)
         if not message:
             message = message_ecc
     except ReedSolomonError:
         message = None
-    return message, ecc_message, message_parts
+    return message, ecc_message, message_raw

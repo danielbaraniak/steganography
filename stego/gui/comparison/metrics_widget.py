@@ -24,9 +24,6 @@ class MetricsWidget(QWidget):
             ("MSE:", "mse"),
             ("PSNR:", "psnr"),
             ("SSIM:", "ssim"),
-            ("Mean diff:", "abs_diff_mean"),
-            ("Min diff:", "min"),
-            ("Max diff:", "max"),
         ]
         self.labels_common = [
             (QLabel(desc_text), QLabel()) for desc_text, _ in self.metrics_common

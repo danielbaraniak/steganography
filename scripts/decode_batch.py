@@ -4,12 +4,14 @@ from time import time
 import cv2
 
 from scripts import utils
+from scripts.embed_batch import SECRET
 from stego import config
 from stego.core import metrics
+from stego.core import message as msg_utils
 
 
-def decode_batch():
-    output_dir = Path(config.get_output_dir()) / "test"
+def decode_batch(size):
+    output_dir = Path(config.get_output_dir()) / "test" / f"{size}x{size}"
     output_dir.mkdir(parents=True, exist_ok=True)
 
     processed_dir_path = output_dir / "processed"
@@ -31,10 +33,24 @@ def decode_batch():
 
         # processed_img = utils.resize_image_with_aspect_ratio(processed_img, 2016)
 
-        message, message_parts = utils.decode(processed_img, encoder_config)
+        message, ecc_message, message_raw = utils.decode(
+            processed_img, encoder_config
+        )
         print(message)
 
-        result = {"file_name": file_name, "message": message}
+        ecc_message_original = msg_utils.encode_ecc(
+            SECRET.encode("ASCII"), **encoder_config
+        )
+        correct_bytes_count = sum(
+            1
+            for msg, msg_decoded in zip(ecc_message_original, ecc_message)
+            if msg == msg_decoded
+        )
+        result = {
+            "file_name": file_name,
+            "message": message,
+            "correct_bytes": correct_bytes_count / len(ecc_message_original),
+        }
 
         info = metrics.diff_metrics(stego_img, processed_img)
         result |= info
@@ -46,7 +62,7 @@ def decode_batch():
 
 if __name__ == "__main__":
     start_time = time()
-    decode_batch()
+    decode_batch(2448)
     end_time = time()
     elapsed_time = end_time - start_time
     print(f"Execution time: {elapsed_time:.2f} seconds")
