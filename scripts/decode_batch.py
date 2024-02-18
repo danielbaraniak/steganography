@@ -10,19 +10,6 @@ from stego.core import message as msg_utils
 from skimage import metrics
 
 
-names_mapping = {
-    "1.jpg": "baloons",
-    "2.jpg": "billiard_balls_b",
-    "3.jpg": "cards_b",
-    "4.jpg": "cushions",
-    "5.jpg": "garden_table",
-    "6.jpg": "pillar",
-    "7.jpg": "scarf",
-    "8.jpg": "sweets",
-    "9.jpg": "tools_b",
-}
-
-
 def decode_batch(size, file_size):
     output_dir = Path(config.get_output_dir()) / "test_platforms" / f"{size}x{size}"
 
@@ -65,7 +52,7 @@ def decode_batch(size, file_size):
             )
             result = {
                 "processed_dir": processed_dir_path,
-                "image_name": names_mapping[file_name],
+                "image_name": file_name,
                 "is_success": message == SECRET,
                 "correct_bytes": correct_bytes_count / len(ecc_message_original),
                 "platform": platform,
